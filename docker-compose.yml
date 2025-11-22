@@ -1,0 +1,31 @@
+
+services:
+  # Serviciul pentru Baza de Date
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=learning_platform
+    ports:
+      - "5432:5432" # Expune portul dacă vrei să te conectezi cu un tool extern (ex: DBeaver)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persistența datelor (să nu le pierzi la restart)
+
+  # Serviciul pentru Aplicația ta Python
+  app:
+    build: .
+    depends_on:
+      - db # Așteaptă ca db să pornească
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=learning_platform
+      - POSTGRES_HOST=db # IMPORTANT: Acesta trebuie să fie numele serviciului de mai sus ("db")
+      - POSTGRES_PORT=5432
+    volumes:
+      - .:/app # Optional: Sync între codul local și container (pt development)
+
+volumes:
+  postgres_data:
