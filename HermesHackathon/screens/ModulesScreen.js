@@ -10,46 +10,46 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// Date simulate (Mock Data) pentru module
+
 const MODULES_DATA = [
   {
     id: '1',
     title: 'Siguranța Salvatorului',
     description: 'Cum să te protejezi înainte de a interveni.',
     icon: 'shield-checkmark',
-    color: '#4CAF50', // Verde
-    progress: 1.0 // 100%
+    color: '#4CAF50',
+    progress: 1.0 
   },
   {
     id: '2',
     title: 'Suport Vital de Bază (BLS)',
     description: 'Protocolul RCP și utilizarea defibrilatorului.',
     icon: 'pulse',
-    color: '#FF4B4B', // Roșu
-    progress: 0.6 // 60%
+    color: '#FF4B4B', 
+    progress: 0.6 
   },
   {
     id: '3',
     title: 'Hemoragii și Șoc',
     description: 'Oprirea sângerărilor masive și recunoașterea șocului.',
     icon: 'bandage',
-    color: '#FF9800', // Portocaliu
-    progress: 0.1 // 10%
+    color: '#FF9800', 
+    progress: 0.1 
   },
   {
     id: '4',
     title: 'Obstrucția Căilor Aeriene',
     description: 'Manevra Heimlich pentru adulți și copii.',
     icon: 'body',
-    color: '#2196F3', // Albastru
-    progress: 0.0 // 0%
+    color: '#2196F3', 
+    progress: 0.0 
   },
   {
     id: '5',
     title: 'Arsuri și Traume',
     description: 'Primul ajutor în caz de arsuri termice și chimice.',
     icon: 'flame',
-    color: '#FF5722', // Rosu inchis
+    color: '#FF5722', 
     progress: 0.0
   },
 ];
@@ -60,7 +60,7 @@ export default function ModulesScreen() {
     <TouchableOpacity 
       style={styles.card} 
       activeOpacity={0.8}
-      // Aici vom naviga în viitor către detaliile modulului
+
       onPress={() => console.log('Open module:', item.id)} 
     >
       <View style={styles.cardTop}>
