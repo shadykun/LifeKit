@@ -3,25 +3,58 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  Image, 
   TouchableOpacity, 
   SafeAreaView, 
   ScrollView,
-  Alert
+  Alert,
+  Switch 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Ionicons from '@expo/vector-icons/Ionicons'; // Am corectat importul pentru Expo Web
+import Ionicons from '@expo/vector-icons/Ionicons';
 
-export default function ProfileScreen({ onLogout }) {
+// ATENȚIE: Adăugați 'navigation' în props!
+export default function ProfileScreen({ onLogout, navigation }) {
   const [userEmail, setUserEmail] = useState('');
+  const [isParentingMode, setIsParentingMode] = useState(false);
 
   useEffect(() => {
-    const getEmail = async () => {
-      const email = await AsyncStorage.getItem('userEmail');
-      setUserEmail(email);
+    const getPreferences = async () => {
+      try {
+        const email = await AsyncStorage.getItem('userEmail');
+        setUserEmail(email);
+        
+        const mode = await AsyncStorage.getItem('parentingMode');
+        setIsParentingMode(mode === 'true'); 
+
+      } catch (e) {
+        console.log('Error loading user data', e);
+      }
     };
-    getEmail();
+    getPreferences();
   }, []);
+
+  // Funcție pentru a schimba starea modului Parenting
+  const toggleParentingMode = async () => {
+    const newState = !isParentingMode;
+    setIsParentingMode(newState);
+
+    await AsyncStorage.setItem('parentingMode', newState ? 'true' : 'false');
+
+    // ⚠ TRIGGER REFRESH la ModulesScreen
+    // Navigarea la "Acasă" (care randează ModulesStack) sau "Modules" 
+    // va forța reîncărcarea datelor datorită listener-ului 'focus' din ModulesScreen.
+    if (navigation) {
+        // Navigăm către ecranul care conține ModulesScreen.
+        navigation.navigate("Modules"); 
+    }
+
+    Alert.alert(
+      "Modul Parenting",
+      newState 
+        ? "Cursurile de parenting sunt acum vizibile în Secțiunea Module." 
+        : "Cursurile de parenting au fost ascunse."
+    );
+  };
 
   const handleLogoutPress = () => {
     Alert.alert(
@@ -34,8 +67,8 @@ export default function ProfileScreen({ onLogout }) {
     );
   };
 
-  const MenuItem = ({ icon, title, color = "#333" }) => (
-    <TouchableOpacity style={styles.menuItem}>
+  const MenuItem = ({ icon, title, color = "#333", onPress }) => (
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
       <View style={[styles.menuIconContainer, { backgroundColor: color + '15' }]}>
         <Ionicons name={icon} size={22} color={color} />
       </View>
@@ -44,50 +77,68 @@ export default function ProfileScreen({ onLogout }) {
     </TouchableOpacity>
   );
 
+  const ToggleItem = ({ icon, title, color, value, onValueChange }) => (
+    <View style={styles.menuItem}>
+      <View style={[styles.menuIconContainer, { backgroundColor: color + '15' }]}>
+        <Ionicons name={icon} size={22} color={color} />
+      </View>
+      <Text style={styles.menuText}>{title}</Text>
+      <Switch 
+          trackColor={{ false: "#E0E0E0", true: "#FF69B4" }} // Roz pentru ON
+          thumbColor={value ? "#fff" : "#f4f3f4"}
+          onValueChange={onValueChange}
+          value={value}
+        />
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         
+        {/* --- Header User --- */}
         <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-             <Image
-               source={{ uri: 'https://img.icons8.com/bubbles/200/user.png' }}
-               style={styles.avatar}
-             />
-             <View style={styles.editBadge}>
-                <Ionicons name="pencil" size={14} color="#fff" />
-             </View>
+          <View style={styles.avatar}>
+            <Ionicons name="person" size={40} color="#fff" />
           </View>
-          <Text style={styles.nameText}>Student Salvator</Text>
-          <Text style={styles.emailText}>{userEmail || 'guest@app.com'}</Text>
-          
-          {/* AICI AM ADĂUGAT VÂRSTA HARDCODATĂ */}
+          <Text style={styles.nameText}>Utilizator Test</Text>
+          <Text style={styles.emailText}>{userEmail || 'Incarcare...'}</Text>
           <View style={styles.ageBadge}>
-            <Ionicons name="calendar-outline" size={14} color="#666" style={{marginRight: 4}}/>
-            <Text style={styles.ageText}>21 ani</Text>
+            <Ionicons name="shield-checkmark-outline" size={16} color="#444" style={{marginRight: 5}}/>
+            <Text style={styles.ageText}>Certificat Nivel 1</Text>
           </View>
-
         </View>
-
+        
+        {/* --- Secțiunea Setări --- */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contul Meu</Text>
+          <Text style={styles.sectionTitle}>Setări</Text>
+          
+          {/* AICI ESTE BUTONUL DE PARENTING */}
+          <ToggleItem 
+            icon="accessibility-outline" 
+            title="Modul Parenting" 
+            color="#FF69B4" // Hot Pink
+            value={isParentingMode}
+            onValueChange={toggleParentingMode}
+          />
+          {/* --- Restul Meniului --- */}
           <MenuItem icon="person" title="Date Personale" color="#007AFF" />
-          <MenuItem icon="shield-checkmark" title="Securitate & Parolă" color="#007AFF" />
-          <MenuItem icon="notifications" title="Notificări" color="#FF9800" />
+          <MenuItem icon="notifications-outline" title="Notificări" color="#FFA500" />
+          <MenuItem icon="lock-closed-outline" title="Securitate" color="#4CAF50" />
         </View>
 
+        {/* --- Secțiunea Suport --- */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Suport</Text>
-          <MenuItem icon="help-circle" title="Întrebări Frecvente" color="#4CAF50" />
-          <MenuItem icon="document-text" title="Termeni și Condiții" color="#607D8B" />
+          <Text style={styles.sectionTitle}>Suport & Legal</Text>
+          <MenuItem icon="help-circle-outline" title="Centru Ajutor" color="#333" />
+          <MenuItem icon="document-text-outline" title="Termeni & Condiții" color="#666" />
         </View>
 
+        {/* --- Logout --- */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogoutPress}>
-          <Ionicons name="log-out-outline" size={24} color="#FF4B4B" style={{marginRight: 10}}/>
-          <Text style={styles.logoutText}>Deconectare</Text>
+          <Ionicons name="log-out-outline" size={24} color="#E53935" />
+          <Text style={styles.logoutButtonText}>Deconectare</Text>
         </TouchableOpacity>
-
-        <Text style={styles.versionText}>v1.0.0 Beta</Text>
 
       </ScrollView>
     </SafeAreaView>
@@ -96,31 +147,24 @@ export default function ProfileScreen({ onLogout }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA' },
-  content: { padding: 20, paddingBottom: 40 },
-  
-  header: { alignItems: 'center', marginBottom: 30 },
-  avatarContainer: { position: 'relative', marginBottom: 15 },
-  avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#fff' },
-  editBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#007AFF', width: 30, height: 30, borderRadius: 15, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#F5F7FA' },
+  content: { padding: 20 },
+  header: { alignItems: 'center', marginBottom: 30, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  avatar: { backgroundColor: '#007AFF', width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', marginBottom: 10, borderWidth: 3, borderColor: '#fff', elevation: 5 },
   nameText: { fontSize: 22, fontWeight: 'bold', color: '#333' },
   emailText: { fontSize: 14, color: '#888', marginTop: 2 },
-  
-  // Stiluri noi pentru badge-ul de vârstă
   ageBadge: { 
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2FD', 
     paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginTop: 8 
   },
   ageText: { fontSize: 13, color: '#444', fontWeight: '600' },
-
   section: { marginBottom: 25 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 10, marginLeft: 5 },
-  
-  menuItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 15, borderRadius: 12, marginBottom: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
+  menuItem: { 
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 15, borderRadius: 12, marginBottom: 10, 
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 
+  },
   menuIconContainer: { width: 40, height: 40, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   menuText: { flex: 1, fontSize: 16, color: '#333' },
-
-  logoutButton: { flexDirection: 'row', backgroundColor: '#fff', padding: 15, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 10, borderWidth: 1, borderColor: '#FFEBEE' },
-  logoutText: { color: '#FF4B4B', fontSize: 16, fontWeight: '600' },
-  
-  versionText: { textAlign: 'center', color: '#ccc', marginTop: 20, fontSize: 12 }
+  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', padding: 15, borderRadius: 12, marginTop: 10, borderWidth: 1, borderColor: '#E5393520' },
+  logoutButtonText: { fontSize: 16, color: '#E53935', fontWeight: 'bold', marginLeft: 10 },
 });
