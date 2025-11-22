@@ -1,4 +1,3 @@
-
 services:
   # Serviciul pentru Baza de Date
   db:
@@ -8,28 +7,33 @@ services:
       - POSTGRES_USER=myuser
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=learning_platform
-    ports:
-      - "5432:5432" # Expune portul dacă vrei să te conectezi cu un tool extern (ex: DBeaver)
+    networks:
+      - internal_net
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Persistența datelor (să nu le pierzi la restart)
+      - postgres_data:/var/lib/postgresql/data
 
-  # Serviciul pentru Aplicația ta Python
+  # Serviciul pentru Aplicația Python
   app:
     build: .
     ports:
-      - "8000:8000"
-    expose:
-      - 8000
+      - "8000:8000"  # expunem doar aplicația, nu baza de date
     depends_on:
-      - db # Așteaptă ca db să pornească
+      - db
     environment:
       - POSTGRES_USER=myuser
       - POSTGRES_PASSWORD=mypassword
       - POSTGRES_DB=learning_platform
-      - POSTGRES_HOST=db # IMPORTANT: Acesta trebuie să fie numele serviciului de mai sus ("db")
+      - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
     volumes:
-      - .:/app # Optional: Sync între codul local și container (pt development)
+      - .:/app
+    networks:
+      - internal_net
 
 volumes:
   postgres_data:
+
+networks:
+  internal_net:
+    driver: bridge
+    internal: true
