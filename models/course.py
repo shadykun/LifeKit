@@ -9,8 +9,6 @@ class Course(Base):
     title = Column(String, nullable=False)
     description = Column(String)
 
-    # Relații (One-to-Many)
-    # Un curs are mai multe capitole, video-uri, imagini, flashcard-uri
     chapters = relationship("Chapter", back_populates="course", cascade="all, delete-orphan")
     videos = relationship("Video", back_populates="course")
     images = relationship("Image", back_populates="course")
