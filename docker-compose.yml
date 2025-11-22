@@ -16,6 +16,10 @@ services:
   # Serviciul pentru Aplicația ta Python
   app:
     build: .
+    ports:
+      - "8000:8000"
+    expose:
+      - 8000
     depends_on:
       - db # Așteaptă ca db să pornească
     environment:
