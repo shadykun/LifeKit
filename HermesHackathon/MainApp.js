@@ -1,11 +1,11 @@
 import React from 'react';
-import { StatusBar, Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+// 2. IMPORTĂM TOATE ECRANELE
 import HomeScreen from './screens/HomeScreen';
 import ModulesScreen from './screens/ModulesScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -15,12 +15,17 @@ import QuizScreen from './screens/QuizScreen';
 import FlashcardsScreen from './screens/FlashcardsScreen';
 import LearningHubScreen from './screens/LearningHubScreen';
 import MapScreen from './screens/MapScreen';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+// --- MENIUL DE JOS (TABS) ---
 function HomeTabs({ onLogout }) {
+  // 2. CALCULĂM INSETS (Spațiul ocupat de sistem)
   const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -28,8 +33,11 @@ function HomeTabs({ onLogout }) {
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: 'gray',
         tabBarStyle: {
-          paddingBottom: Platform.OS === 'android' ? insets.bottom : 5,
-          height: 60 + (Platform.OS === 'android' ? insets.bottom : 0),
+          // 3. APLICĂM CORECȚIA PENTRU BUTOANELE TOUCH
+          // Adăugăm înălțimea butoanelor sistemului la înălțimea meniului nostru
+          height: 60 + (Platform.OS === 'android' ? insets.bottom : 0), 
+          paddingBottom: 5 + (Platform.OS === 'android' ? insets.bottom : 0),
+          
           borderTopWidth: 0,
           elevation: 5,
           shadowOpacity: 0.1,
@@ -53,6 +61,7 @@ function HomeTabs({ onLogout }) {
   );
 }
 
+// --- NAVIGAȚIA PRINCIPALĂ (STACK) ---
 export default function MainApp({ onLogout }) {
   
   const handleLogout = async () => {
@@ -64,6 +73,8 @@ export default function MainApp({ onLogout }) {
     }
   };
 
+  // 3. AICI E SCHIMBAREA: Returnăm <> ... </> (Fragment)
+  // FĂRĂ NavigationContainer, pentru că App.js îl are deja.
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F7FA" />
@@ -76,10 +87,12 @@ export default function MainApp({ onLogout }) {
           headerBackTitleVisible: false,
         }}
       >
+        {/* Ecranele Principale (Tabs) */}
         <Stack.Screen name="MainTabs" options={{ headerShown: false }}>
            {() => <HomeTabs onLogout={handleLogout} />}
         </Stack.Screen>
 
+        {/* Ecranele din Hub */}
         <Stack.Screen 
           name="Modules" 
           component={ModulesScreen} 
@@ -92,6 +105,7 @@ export default function MainApp({ onLogout }) {
           options={{ title: 'Harta Locații' }} 
         />
 
+        {/* Restul Ecranelor */}
         <Stack.Screen 
           name="ModuleDetail" 
           component={ModuleDetailScreen} 
