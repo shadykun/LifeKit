@@ -52,8 +52,6 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.sectionTitle}>Continuă învățarea</Text>
         <TouchableOpacity 
           style={styles.continueCard} 
-         
-          onPress={() => navigation.navigate('Invatare')} 
         >
           <View style={styles.iconContainer}>
             <Ionicons name="heart-circle" size={45} color="#FF4B4B" />

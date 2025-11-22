@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from "react-nat
 export default function MapScreen() {
   const [loading, setLoading] = useState(true);
   const [places, setPlaces] = useState([]);
-  const API_URL = "http://35.159.19.52:8000"; 
+  const API_URL = "http://ec2-63-178-67-11.eu-central-1.compute.amazonaws.com:8000"; 
 
   // Putem păstra logica de fetch și pe web, doar afișăm text în loc de hartă
   useEffect(() => {

@@ -10,7 +10,7 @@ import {
   Alert
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Ionicons from '@expo/vector-icons/Ionicons'; // Am corectat importul pentru Expo Web
 
 export default function ProfileScreen({ onLogout }) {
   const [userEmail, setUserEmail] = useState('');
@@ -60,6 +60,13 @@ export default function ProfileScreen({ onLogout }) {
           </View>
           <Text style={styles.nameText}>Student Salvator</Text>
           <Text style={styles.emailText}>{userEmail || 'guest@app.com'}</Text>
+          
+          {/* AICI AM ADĂUGAT VÂRSTA HARDCODATĂ */}
+          <View style={styles.ageBadge}>
+            <Ionicons name="calendar-outline" size={14} color="#666" style={{marginRight: 4}}/>
+            <Text style={styles.ageText}>21 ani</Text>
+          </View>
+
         </View>
 
         <View style={styles.section}>
@@ -97,6 +104,13 @@ const styles = StyleSheet.create({
   editBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#007AFF', width: 30, height: 30, borderRadius: 15, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#F5F7FA' },
   nameText: { fontSize: 22, fontWeight: 'bold', color: '#333' },
   emailText: { fontSize: 14, color: '#888', marginTop: 2 },
+  
+  // Stiluri noi pentru badge-ul de vârstă
+  ageBadge: { 
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2FD', 
+    paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginTop: 8 
+  },
+  ageText: { fontSize: 13, color: '#444', fontWeight: '600' },
 
   section: { marginBottom: 25 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 10, marginLeft: 5 },

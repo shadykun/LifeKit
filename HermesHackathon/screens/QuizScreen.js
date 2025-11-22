@@ -1,198 +1,345 @@
-import React, {useState} from 'react';
-import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
+import { 
+  View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal 
+} from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { ApiService } from '../services/ApiService';
 
-const QUIZ_DATA = [
-  {
-    id: 'q1',
-    question: 'Ce trebuie să faci mai întâi când găsești o persoană inconștientă?',
-    options: [
-      { id: 'a', text: 'Să o miști imediat într-un loc mai sigur', isCorrect: false },
-      { id: 'b', text: 'Să verifici răspunsul și respirația', isCorrect: true },
-      { id: 'c', text: 'Să îi dai apă imediat', isCorrect: false },
-    ],
-    explanation: 'Primul pas este să verifici răspunsul și respirația pentru a decide ce urmează (apel 112, CPR etc.).'
-  },
-  {
-    id: 'q2',
-    question: 'Cum verifici respirația corect?',
-    options: [
-      { id: 'a', text: 'Pune urechea aproape de gură/ nas și urmărește pieptul', isCorrect: true },
-      { id: 'b', text: 'Ridici brațul pacientului', isCorrect: false },
-      { id: 'c', text: 'Îi dai palme puternice', isCorrect: false },
-    ],
-    explanation: 'Fii atent la sunete de respirație, mișcarea pieptului și simte suflul la ureche.'
-  },
-  {
-    id: 'q3',
-    question: 'Ce facem dacă detectăm o hemoragie puternică?',
-    options: [
-      { id: 'a', text: 'Aplicăm presiune directă pe rană', isCorrect: true },
-      { id: 'b', text: 'Ridicăm hainele pacientului', isCorrect: false },
-      { id: 'c', text: 'Așteptăm o ambulanță fără a interveni', isCorrect: false },
-    ],
-    explanation: 'Aplicarea presiunii directe ajută la oprirea sângerării; apoi ridicarea membrului dacă este posibil.'
-  }
-];
+export default function QuizScreen({ navigation, route }) {
+  const { moduleId, moduleTitle } = route.params || {};
 
-export default function QuizScreen({ navigation }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedId, setSelectedId] = useState(null);
-  const [answered, setAnswered] = useState(false);
+  // Stări Aplicație
+  const [loading, setLoading] = useState(true);
+  const [screenState, setScreenState] = useState('list'); // 'list', 'playing', 'result'
+  
+  // Date
+  const [availableQuizzes, setAvailableQuizzes] = useState([]);
+  const [currentQuestions, setCurrentQuestions] = useState([]);
+  
+  // Stare Joc
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [isAnswerChecked, setIsAnswerChecked] = useState(false);
 
-  const current = QUIZ_DATA[currentIndex];
+  // --- 1. ÎNCĂRCARE LISTĂ QUIZ-URI ---
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        const allQuizzes = await ApiService.getQuizzes();
+        
+        // Filtrăm quiz-urile care aparțin acestui curs (moduleId)
+        // Presupunem că modelul Quiz are 'course_id'
+        const filtered = allQuizzes.filter(q => q.course_id == moduleId || !q.course_id);
+        
+        setAvailableQuizzes(filtered);
+      } catch (error) {
+        console.error("Eroare Quiz:", error);
+        Alert.alert("Eroare", "Nu am putut încărca testele.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuizzes();
+  }, [moduleId]);
 
-  const onSelect = (option) => {
-    if (answered) return;
-    setSelectedId(option.id);
-    setAnswered(true);
-    if (option.isCorrect) setScore(prev => prev + 1);
-  };
+  // --- 2. PORNIRE QUIZ (Fetch Întrebări) ---
+  const startQuiz = async (quiz) => {
+    setLoading(true);
+    try {
+      // Backend-ul tău are /questions care returnează TOATE întrebările
+      // Trebuie să le luăm pe toate și să le filtrăm după quiz.id
+      const allQuestions = await ApiService.getQuestions();
+      
+      const quizQuestions = allQuestions.filter(q => q.quiz_id === quiz.id);
 
-  const onNext = () => {
-    const next = currentIndex + 1;
-    setSelectedId(null);
-    setAnswered(false);
-    if (next < QUIZ_DATA.length) {
-      setCurrentIndex(next);
-    } else {
-      setShowResult(true);
+      if (quizQuestions.length === 0) {
+        Alert.alert("Ups!", "Acest test nu are întrebări încă.");
+        setLoading(false);
+        return;
+      }
+
+      setCurrentQuestions(quizQuestions);
+      setCurrentQuestionIndex(0);
+      setScore(0);
+      setScreenState('playing');
+    } catch (error) {
+      Alert.alert("Eroare", "Nu am putut descărca întrebările.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const onRetry = () => {
-    setCurrentIndex(0);
-    setScore(0);
-    setSelectedId(null);
-    setAnswered(false);
-    setShowResult(false);
+  // --- LOGICA DE JOC ---
+  const handleAnswer = (option) => {
+    if (isAnswerChecked) return; // Nu lăsa să răspundă de două ori
+
+    setSelectedOption(option);
+    setIsAnswerChecked(true);
+
+    const currentQ = currentQuestions[currentQuestionIndex];
+    
+    // Verificăm dacă răspunsul e corect
+    // Presupunem că modelul Question are 'correct_answer' și 'options' (care poate fi JSON string sau array)
+    // Sau poate opțiunile sunt 'option_a', 'option_b' etc.
+    // Aici adaptez pentru un caz generic: option === currentQ.correct_answer
+    
+    if (option === currentQ.correct_answer) {
+      setScore(prev => prev + 1);
+    }
   };
 
-  if (showResult) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.containerCenter}>
-          <Ionicons name="checkmark-circle-outline" size={64} color="#007AFF" />
-          <Text style={styles.resultTitle}>Rezultat</Text>
-          <Text style={styles.resultScore}>{score} / {QUIZ_DATA.length}</Text>
+  const nextQuestion = () => {
+    setIsAnswerChecked(false);
+    setSelectedOption(null);
 
-          <View style={styles.resultButtons}>
-            <TouchableOpacity style={styles.primaryButton} onPress={onRetry}>
-              <Text style={styles.primaryButtonText}>Repetă</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.ghostButton} onPress={() => navigation.goBack()}>
-              <Text style={styles.ghostButtonText}>Înapoi la Module</Text>
-            </TouchableOpacity>
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      setScreenState('result');
+    }
+  };
+
+  const restartQuiz = () => {
+    setScreenState('list');
+    setCurrentQuestionIndex(0);
+    setScore(0);
+  };
+
+  // --- RENDER: LISTA DE TESTE ---
+  const renderQuizList = () => (
+    <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={styles.headerBox}>
+        <Ionicons name="school" size={50} color="#007AFF" />
+        <Text style={styles.headerTitle}>Teste Disponibile</Text>
+        <Text style={styles.headerSubtitle}>{moduleTitle || "Module"}</Text>
+      </View>
+
+      {availableQuizzes.length === 0 ? (
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyText}>Nu există teste pentru acest modul.</Text>
+        </View>
+      ) : (
+        availableQuizzes.map((quiz, index) => (
+          <TouchableOpacity 
+            key={quiz.id || index} 
+            style={styles.quizCard}
+            onPress={() => startQuiz(quiz)}
+          >
+            <View style={styles.quizIconBg}>
+              <Ionicons name="checkbox-outline" size={28} color="#FFF" />
+            </View>
+            <View style={{flex: 1}}>
+              <Text style={styles.quizTitle}>{quiz.title || `Testul ${index + 1}`}</Text>
+              <Text style={styles.quizDesc}>{quiz.description || "Verifică-ți cunoștințele."}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#ccc" />
+          </TouchableOpacity>
+        ))
+      )}
+    </ScrollView>
+  );
+
+  // --- RENDER: JOC (ÎNTREBARE) ---
+  const renderGame = () => {
+    const question = currentQuestions[currentQuestionIndex];
+    
+    // Parsăm opțiunile (dacă vin ca string din backend, ex: "A,B,C,D" sau JSON)
+    // Aici fac un fallback simplu: dacă options e array îl folosesc, altfel îl fac array
+    let options = [];
+    if (Array.isArray(question.options)) {
+      options = question.options;
+    } else if (typeof question.options === 'string') {
+      // Dacă e string JSON sau CSV, încearcă să parsezi
+      try { options = JSON.parse(question.options); } 
+      catch { options = question.options.split(','); }
+    } else {
+      // Fallback hardcodat dacă backend-ul nu trimite options
+      options = ["Adevărat", "Fals", "Nu știu"]; 
+    }
+
+    return (
+      <ScrollView contentContainerStyle={styles.gameContainer}>
+        <View style={styles.progressContainer}>
+          <Text style={styles.progressText}>Întrebarea {currentQuestionIndex + 1} / {currentQuestions.length}</Text>
+          <View style={styles.progressBarBg}>
+            <View style={[styles.progressBarFill, {width: `${((currentQuestionIndex + 1) / currentQuestions.length) * 100}%`}]} />
           </View>
         </View>
-      </SafeAreaView>
+
+        <View style={styles.questionBox}>
+          <Text style={styles.questionText}>{question.text || question.content}</Text>
+        </View>
+
+        {options.map((opt, idx) => {
+          const isSelected = selectedOption === opt;
+          const isCorrect = opt === question.correct_answer;
+          
+          let btnStyle = styles.optionBtn;
+          let txtStyle = styles.optionText;
+          let iconName = "ellipse-outline";
+          let iconColor = "#666";
+
+          if (isAnswerChecked) {
+            if (isCorrect) {
+              btnStyle = styles.correctBtn; // Verde pt răspunsul corect
+              txtStyle = styles.whiteText;
+              iconName = "checkmark-circle";
+              iconColor = "#fff";
+            } else if (isSelected) {
+              btnStyle = styles.wrongBtn; // Roșu dacă ai ales greșit
+              txtStyle = styles.whiteText;
+              iconName = "close-circle";
+              iconColor = "#fff";
+            }
+          } else if (isSelected) {
+            btnStyle = styles.selectedBtn;
+            iconName = "radio-button-on";
+            iconColor = "#007AFF";
+          }
+
+          return (
+            <TouchableOpacity 
+              key={idx} 
+              style={btnStyle} 
+              onPress={() => handleAnswer(opt)}
+              disabled={isAnswerChecked}
+            >
+              <Text style={txtStyle}>{opt}</Text>
+              <Ionicons name={iconName} size={24} color={iconColor} />
+            </TouchableOpacity>
+          );
+        })}
+
+        {isAnswerChecked && (
+          <TouchableOpacity style={styles.nextButton} onPress={nextQuestion}>
+            <Text style={styles.nextButtonText}>
+              {currentQuestionIndex === currentQuestions.length - 1 ? "Vezi Rezultat" : "Următoarea"}
+            </Text>
+            <Ionicons name="arrow-forward" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+    );
+  };
+
+  // --- RENDER: REZULTAT ---
+  const renderResult = () => {
+    const percentage = Math.round((score / currentQuestions.length) * 100);
+    const isPass = percentage >= 50;
+
+    return (
+      <View style={styles.resultContainer}>
+        <Ionicons 
+          name={isPass ? "trophy" : "book"} 
+          size={100} 
+          color={isPass ? "#FFD700" : "#90A4AE"} 
+        />
+        <Text style={styles.resultTitle}>{isPass ? "Felicitări!" : "Mai încearcă!"}</Text>
+        
+        <View style={styles.scoreBox}>
+          <Text style={styles.scoreLabel}>Scorul Tău</Text>
+          <Text style={[styles.scoreVal, {color: isPass ? '#4CAF50' : '#E53935'}]}>
+            {score} / {currentQuestions.length}
+          </Text>
+        </View>
+
+        <Text style={styles.resultMsg}>
+          {isPass 
+            ? "Ai demonstrat că stăpânești noțiunile acestui capitol."
+            : "Îți recomandăm să revezi materialele de studiu și să revii."}
+        </Text>
+
+        <TouchableOpacity style={styles.restartBtn} onPress={restartQuiz}>
+          <Text style={styles.restartText}>Înapoi la Teste</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // --- RENDER PRINCIPAL ---
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={{marginTop: 10, color: '#666'}}>Se încarcă...</Text>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.counter}>Întrebare {currentIndex + 1} / {QUIZ_DATA.length}</Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.question}>{current.question}</Text>
-
-          <View style={styles.options}>
-            {current.options.map(opt => {
-              const isSelected = selectedId === opt.id;
-              const correct = opt.isCorrect;
-
-              // determine style
-              let optionStyle = styles.option;
-              let optionTextStyle = styles.optionText;
-
-              if (answered) {
-                if (isSelected && correct) {
-                  optionStyle = {...optionStyle, ...styles.optionCorrect};
-                  optionTextStyle = {...optionTextStyle, color: '#fff'};
-                } else if (isSelected && !correct) {
-                  optionStyle = {...optionStyle, ...styles.optionWrong};
-                  optionTextStyle = {...optionTextStyle, color: '#fff'};
-                } else if (!isSelected && correct) {
-                  // show correct answer when a wrong was selected
-                  optionStyle = {...optionStyle, ...styles.optionCorrectOutline};
-                }
-              }
-
-              return (
-                <TouchableOpacity
-                  key={opt.id}
-                  style={optionStyle}
-                  onPress={() => onSelect(opt)}
-                >
-                  <Text style={optionTextStyle}>{opt.text}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {answered && (
-            <View style={styles.explanationBox}>
-              <Text style={styles.explanationText}>{current.explanation}</Text>
-            </View>
-          )}
-
-          {answered && (
-            <TouchableOpacity style={styles.nextButton} onPress={onNext}>
-              <Text style={styles.nextButtonText}>Următoarea</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.navBar}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{padding: 10}}>
+          <Ionicons name="close" size={28} color="#333"/>
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>Quiz</Text>
+        <View style={{width: 40}} />
       </View>
+
+      {screenState === 'list' && renderQuizList()}
+      {screenState === 'playing' && renderGame()}
+      {screenState === 'result' && renderResult()}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F5F7FA' },
-  container: { flex: 1, padding: 16 },
-  header: { paddingVertical: 8 },
-  counter: { color: '#333', fontSize: 14 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    marginTop: 8,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    flex: 1
+  container: { flex: 1, backgroundColor: '#F5F7FA' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  
+  navBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 },
+  navTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+
+  // List Styles
+  scrollContent: { padding: 20 },
+  headerBox: { alignItems: 'center', marginBottom: 30, marginTop: 10 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#333', marginTop: 10 },
+  headerSubtitle: { fontSize: 16, color: '#666' },
+  quizCard: { 
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 20, 
+    borderRadius: 16, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05 
   },
-  question: { fontSize: 18, fontWeight: '700', color: '#333', marginBottom: 16 },
-  options: { marginTop: 8 },
-  option: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E6EEF8',
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 10,
+  quizIconBg: { width: 50, height: 50, borderRadius: 12, backgroundColor: '#4CAF50', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  quizTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  quizDesc: { fontSize: 13, color: '#666' },
+  emptyBox: { alignItems: 'center', marginTop: 50 },
+  emptyText: { color: '#999', fontSize: 16 },
+
+  // Game Styles
+  gameContainer: { padding: 20 },
+  progressContainer: { marginBottom: 20 },
+  progressText: { fontSize: 14, color: '#666', marginBottom: 5 },
+  progressBarBg: { height: 8, backgroundColor: '#E0E0E0', borderRadius: 4 },
+  progressBarFill: { height: 8, backgroundColor: '#007AFF', borderRadius: 4 },
+  
+  questionBox: { backgroundColor: '#fff', padding: 25, borderRadius: 16, marginBottom: 25, elevation: 2 },
+  questionText: { fontSize: 18, fontWeight: '600', color: '#333', textAlign: 'center', lineHeight: 26 },
+  
+  optionBtn: { 
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', 
+    backgroundColor: '#fff', padding: 18, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E0E0E0' 
   },
-  optionText: { color: '#333', fontSize: 15 },
-  optionCorrect: { backgroundColor: '#2ECC71', borderColor: '#2ECC71' },
-  optionWrong: { backgroundColor: '#E74C3C', borderColor: '#E74C3C' },
-  optionCorrectOutline: { borderColor: '#2ECC71', borderWidth: 2 },
-  explanationBox: { marginTop: 12, padding: 12, backgroundColor: '#F0F6FF', borderRadius: 8 },
-  explanationText: { color: '#333' },
-  nextButton: { marginTop: 16, backgroundColor: '#007AFF', padding: 14, borderRadius: 10, alignItems: 'center' },
-  nextButtonText: { color: '#fff', fontWeight: '700' },
-  containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F7FA' },
-  resultTitle: { fontSize: 22, fontWeight: '700', color: '#333', marginTop: 12 },
-  resultScore: { fontSize: 36, fontWeight: '800', color: '#007AFF', marginVertical: 12 },
-  resultButtons: { flexDirection: 'row', marginTop: 20 },
-  primaryButton: { backgroundColor: '#007AFF', padding: 12, borderRadius: 10, marginRight: 8 },
-  primaryButtonText: { color: '#fff', fontWeight: '700' },
-  ghostButton: { padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#007AFF' },
-  ghostButtonText: { color: '#007AFF', fontWeight: '700' }
+  selectedBtn: { borderColor: '#007AFF', backgroundColor: '#F0F8FF' },
+  correctBtn: { backgroundColor: '#4CAF50', borderColor: '#4CAF50' },
+  wrongBtn: { backgroundColor: '#E53935', borderColor: '#E53935' },
+  
+  optionText: { fontSize: 16, color: '#333' },
+  whiteText: { fontSize: 16, color: '#fff', fontWeight: 'bold' },
+
+  nextButton: { 
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', 
+    backgroundColor: '#007AFF', padding: 16, borderRadius: 30, marginTop: 20 
+  },
+  nextButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginRight: 10 },
+
+  // Result Styles
+  resultContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
+  resultTitle: { fontSize: 28, fontWeight: 'bold', color: '#333', marginTop: 20, marginBottom: 10 },
+  scoreBox: { backgroundColor: '#fff', paddingVertical: 15, paddingHorizontal: 40, borderRadius: 16, alignItems: 'center', elevation: 2, marginVertical: 20 },
+  scoreLabel: { fontSize: 14, color: '#888', textTransform: 'uppercase' },
+  scoreVal: { fontSize: 32, fontWeight: 'bold', marginTop: 5 },
+  resultMsg: { textAlign: 'center', color: '#666', fontSize: 16, paddingHorizontal: 20, marginBottom: 40, lineHeight: 24 },
+  restartBtn: { backgroundColor: '#007AFF', paddingVertical: 15, paddingHorizontal: 30, borderRadius: 30 },
+  restartText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
 });

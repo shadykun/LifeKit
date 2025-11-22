@@ -18,7 +18,7 @@ export default function MapScreen() {
     console.log(`Încerc să mă conectez la: ${API_URL}`);
 
     fetch(
-      `${API_URL}/first-aid-centers?lat=${userLocation.latitude}&lon=${userLocation.longitude}&radius=5000`
+      `${API_URL}/nearby/first-aid-centers?lat=${userLocation.latitude}&lon=${userLocation.longitude}&radius=5000`
     )
       .then((res) => {
         if (!res.ok) {
