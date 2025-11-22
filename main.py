@@ -6,7 +6,7 @@ from models.course import Course, Chapter
 from models.media import Video, Image, Text
 from models.assessment import Flashcard, Quiz, Question
 from routers import nearbyLocation
-from routers import courses, chapters, flashcards, quizzes,questions, videos, texts, images, accounts
+from routers import courses, chapters, flashcards, quizzes,questions, videos, texts, images
 
 app = FastAPI(title="Learning Platform API")
 
@@ -20,7 +20,6 @@ app.include_router(questions.router)
 app.include_router(videos.router)
 app.include_router(texts.router)
 app.include_router(images.router)
-app.include_router(accounts.router)
 
 @app.get("/")
 def root():

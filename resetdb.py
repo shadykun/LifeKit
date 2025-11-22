@@ -5,7 +5,6 @@ Folosește-l doar în faza de dezvoltare!
 """
 from database import engine, Base
 # Importăm toate modelele pentru a ne asigura că sunt înregistrate în Base.metadata
-from models.user import Account
 from models.course import Course, Chapter
 from models.media import Video, Image, Text
 from models.assessment import Quiz, Question, Flashcard
