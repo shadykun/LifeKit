@@ -1,0 +1,25 @@
+# 1. Folosim o imagine de Node.js (LTS version) în loc de Python
+FROM node:18-slim
+
+# 2. Setăm directorul de lucru
+WORKDIR /app
+
+# 3. Copiem fișierele de dependențe (package.json și package-lock.json)
+# Este important să copiem și lock-ul pentru versiuni exacte
+COPY package*.json ./
+
+# 4. Instalăm dependențele node
+RUN npm install
+
+# 5. Copiem restul codului sursă
+COPY . .
+
+# 6. React Native (Metro Bundler) rulează default pe 8081
+EXPOSE 8081
+
+# 7. Setăm host-ul pe 0.0.0.0 pentru a accepta conexiuni din afara containerului
+# Notă: Unele setup-uri RN ignoră asta, dar este o practică bună în Docker
+ENV REACT_NATIVE_PACKAGER_HOSTNAME="0.0.0.0"
+
+# 8. Comanda de start
+CMD ["npm", "start", "--", "--host", "0.0.0.0"]

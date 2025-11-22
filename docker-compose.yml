@@ -31,6 +31,17 @@ services:
       - .:/app
     networks:
       - internal_net
+      
+  frontend:
+    build:
+      context: ./HermesHackathon
+      dockerfile: dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - app
+    networks:
+      - internal_net
 
 volumes:
   postgres_data:

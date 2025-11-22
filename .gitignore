@@ -1,6 +1,4 @@
 .env
 __pycache__
-./models/__pycache__/
-./schemas/__pycache__/
-__pycache__/
-*.pyc
+__pycache__/*.pyc
+
