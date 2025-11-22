@@ -15,12 +15,17 @@ import QuizScreen from './screens/QuizScreen';
 import FlashcardsScreen from './screens/FlashcardsScreen';
 import LearningHubScreen from './screens/LearningHubScreen';
 import MapScreen from './screens/MapScreen';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 // --- MENIUL DE JOS (TABS) ---
 function HomeTabs({ onLogout }) {
+  // 2. CALCULĂM INSETS (Spațiul ocupat de sistem)
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -28,8 +33,11 @@ function HomeTabs({ onLogout }) {
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: 'gray',
         tabBarStyle: {
-          paddingBottom: 5,
-          height: 60,
+          // 3. APLICĂM CORECȚIA PENTRU BUTOANELE TOUCH
+          // Adăugăm înălțimea butoanelor sistemului la înălțimea meniului nostru
+          height: 60 + (Platform.OS === 'android' ? insets.bottom : 0), 
+          paddingBottom: 5 + (Platform.OS === 'android' ? insets.bottom : 0),
+          
           borderTopWidth: 0,
           elevation: 5,
           shadowOpacity: 0.1,
