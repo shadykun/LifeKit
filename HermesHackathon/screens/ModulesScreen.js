@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-
 const MODULES_DATA = [
   {
     id: '1',
@@ -54,14 +53,15 @@ const MODULES_DATA = [
   },
 ];
 
-export default function ModulesScreen() {
+// ATENȚIE: Trebuie să primim 'navigation' ca prop aici!
+export default function ModulesScreen({ navigation }) {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity 
       style={styles.card} 
       activeOpacity={0.8}
-
-      onPress={() => console.log('Open module:', item.id)} 
+      // AICI ERA PROBLEMA: Acum navigăm efectiv și trimitem datele (item)
+      onPress={() => navigation.navigate('ModuleDetail', { moduleData: item, moduleTitle: item.title })} 
     >
       <View style={styles.cardTop}>
         {/* Icon */}
