@@ -23,6 +23,9 @@ class Quiz(Base):
     chapter = relationship("Chapter", back_populates="quizzes")
     questions = relationship("Question", back_populates="quiz", cascade="all, delete-orphan")
 
+    questions = relationship("Question", back_populates="quiz", cascade="all, delete-orphan")
+
+
 class Question(Base):
     __tablename__ = 'questions'
 
