@@ -1,15 +1,20 @@
-from fastapi import FastAPI
+from fastapi import APIRouter, HTTPException
 import requests
 from dotenv import load_dotenv
 import os
 
+
 load_dotenv()
-app = FastAPI()
+router = APIRouter(prefix="/nearby", tags=["First Aid Centers"])
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-@app.get("/first-aid-centers")
+
+@router.get("/first-aid-centers")
 def first_aid_centers(lat: float, lon: float, radius: int = 5000):
+
+    if not GOOGLE_API_KEY:
+        raise HTTPException(status_code=500, detail="Missing GOOGLE_API_KEY environment variable")
 
     url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
 

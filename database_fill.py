@@ -61,14 +61,17 @@ def seed_courses(session):
 		Course(
 			title="Primul ajutor pentru hemoragii majore",
 			description="Proceduri esențiale pentru controlul sângerărilor severe până la sosirea ambulanței.",
+			parenting=False,
 		),
 		Course(
 			title="Managementul stopului cardiac la adult",
 			description="Recunoașterea stopului cardiac și aplicarea CPR + utilizarea AED.",
+			parenting=False,
 		),
 		Course(
 			title="Stabilizarea victimelor traumatizate",
 			description="Evaluarea rapidă a victimelor cu traumatisme și prevenirea agravării leziunilor.",
+			parenting=False,
 		),
 	]
 	session.add_all(courses)

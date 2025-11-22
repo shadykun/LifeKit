@@ -34,9 +34,12 @@ def update_course(course_id: int, data: CourseCreate, db: Session = Depends(get_
     course = db.query(CourseModel).filter_by(id=course_id).first()
     if not course:
         raise HTTPException(404, "Course not found")
-    for k, v in data.dict().items():
-        setattr(course, k, v)
+
+    for key, value in data.dict().items():
+        setattr(course, key, value)
+
     db.commit()
+    db.refresh(course)
     return course
 
 
