@@ -154,19 +154,19 @@ def seed_texts(session):
 def seed_images(session, courses, texts):
     images = [
         Image(
-            url="https://cdn.safeaid.org/images/tourniquet-placement.png",
+            url="https://wikimami.ro/wp-content/uploads/2022/10/sangerari.jpg",
             alt_text="Pași pentru aplicarea unui garou pe membrul superior",
             course=courses[0],
             text=texts[0],
         ),
         Image(
-            url="https://cdn.safeaid.org/images/aed-pad-placement.png",
+            url="https://image.stirileprotv.ro/media/images/680xX/Dec2011/60532296.jpg",
             alt_text="Poziționarea corectă a electrozilor AED la adult",
             course=courses[1],
             text=texts[1],
         ),
         Image(
-            url="https://cdn.safeaid.org/images/log-roll-team.png",
+            url="https://clinica-aliat-suceava.ro/wp-content/uploads/elementor/thumbs/trauma-si-mecanismele-de-coping-qs60ap4gs9tczhg7anmxpinp7i0exdotlvz5twi360.jpg",
             alt_text="Echipă demonstrând manevra log-roll cu stabilizarea capului",
             course=courses[2],
             text=texts[2],
