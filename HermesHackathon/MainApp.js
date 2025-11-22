@@ -3,12 +3,11 @@ import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
-// Importăm ecranele separate
 import HomeScreen from './screens/HomeScreen';
-import ModulesScreen from './screens/ModulesScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import ModulesStack from './navigation/ModulesStack';
 
 const Tab = createBottomTabNavigator();
 
@@ -50,7 +49,7 @@ export default function MainApp({ onLogout }) {
         })}
       >
         <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Acasă' }}/>
-        <Tab.Screen name="Modules" component={ModulesScreen} options={{ tabBarLabel: 'Învățare' }}/>
+        <Tab.Screen name="Modules" component={ModulesStack} options={{ tabBarLabel: 'Învățare' }}/>
         <Tab.Screen name="Profile" options={{ tabBarLabel: 'Profil' }}>
           {() => <ProfileScreen onLogout={handleLogout} />}
         </Tab.Screen>

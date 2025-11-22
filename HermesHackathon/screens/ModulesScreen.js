@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -6,9 +6,10 @@ import {
   FlatList, 
   SafeAreaView, 
   TouchableOpacity,
-  StatusBar
+  StatusBar,
+  Modal
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const MODULES_DATA = [
@@ -54,32 +55,26 @@ const MODULES_DATA = [
   },
 ];
 
-export default function ModulesScreen() {
+export default function ModulesScreen({ navigation }) {
+  const [selectedModule, setSelectedModule] = useState(null);
 
   const renderItem = ({ item }) => (
     <TouchableOpacity 
       style={styles.card} 
       activeOpacity={0.8}
-
-      onPress={() => console.log('Open module:', item.id)} 
+      onPress={() => setSelectedModule(item)}
     >
       <View style={styles.cardTop}>
-        {/* Icon */}
         <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
            <Ionicons name={item.icon} size={28} color={item.color} />
         </View>
-        
-        {/* Text Info */}
         <View style={styles.textContainer}>
            <Text style={styles.cardTitle}>{item.title}</Text>
            <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
         </View>
-
-        {/* Arrow */}
         <Ionicons name="chevron-forward" size={24} color="#ccc" />
       </View>
 
-      {/* Progress Bar */}
       <View style={styles.progressContainer}>
           <View style={styles.progressLabelRow}>
              <Text style={styles.progressText}>
@@ -99,6 +94,15 @@ export default function ModulesScreen() {
     </TouchableOpacity>
   );
 
+  const handleSelectMethod = (method) => {
+    setSelectedModule(null);
+    if (method === 'quiz') {
+      navigation.navigate('QuizScreen', { moduleId: selectedModule?.id });
+    } else if (method === 'flashcards') {
+      navigation.navigate('FlashcardsScreen', { moduleId: selectedModule?.id });
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F7FA" />
@@ -115,6 +119,34 @@ export default function ModulesScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
+
+      <Modal visible={!!selectedModule} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Alege metoda de învățare</Text>
+            <TouchableOpacity 
+              style={styles.methodButton} 
+              onPress={() => handleSelectMethod('quiz')}
+            >
+              <Ionicons name="help-circle-outline" size={24} color="#007AFF" />
+              <Text style={styles.methodText}>Quiz</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.methodButton} 
+              onPress={() => handleSelectMethod('flashcards')}
+            >
+              <Ionicons name="card-outline" size={24} color="#007AFF" />
+              <Text style={styles.methodText}>Flashcards</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.methodButtonCancel} 
+              onPress={() => setSelectedModule(null)}
+            >
+              <Text style={styles.methodTextCancel}>Anulează</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -140,5 +172,13 @@ const styles = StyleSheet.create({
   progressText: { fontSize: 12, color: '#888', fontWeight: '600' },
   progressPercent: { fontSize: 12, color: '#333', fontWeight: 'bold' },
   progressBarBg: { height: 6, backgroundColor: '#f0f0f0', borderRadius: 3, overflow: 'hidden' },
-  progressBarFill: { height: '100%', borderRadius: 3 }
+  progressBarFill: { height: '100%', borderRadius: 3 },
+
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 30 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 20, textAlign: 'center' },
+  methodButton: { flexDirection: 'row', backgroundColor: '#F5F7FA', padding: 16, borderRadius: 12, marginBottom: 12, alignItems: 'center' },
+  methodText: { fontSize: 16, fontWeight: '600', color: '#333', marginLeft: 12 },
+  methodButtonCancel: { padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#ddd', marginTop: 8 },
+  methodTextCancel: { fontSize: 16, fontWeight: '600', color: '#666', textAlign: 'center' }
 });
