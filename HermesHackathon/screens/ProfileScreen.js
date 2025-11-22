@@ -34,7 +34,6 @@ export default function ProfileScreen({ onLogout }) {
     );
   };
 
-  // Componentă helper pentru elementele din meniu
   const MenuItem = ({ icon, title, color = "#333" }) => (
     <TouchableOpacity style={styles.menuItem}>
       <View style={[styles.menuIconContainer, { backgroundColor: color + '15' }]}>
@@ -49,7 +48,6 @@ export default function ProfileScreen({ onLogout }) {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         
-        {/* Header Profile */}
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
              <Image
@@ -64,7 +62,6 @@ export default function ProfileScreen({ onLogout }) {
           <Text style={styles.emailText}>{userEmail || 'guest@app.com'}</Text>
         </View>
 
-        {/* Secțiunea Setări Generale */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Contul Meu</Text>
           <MenuItem icon="person" title="Date Personale" color="#007AFF" />
@@ -72,14 +69,12 @@ export default function ProfileScreen({ onLogout }) {
           <MenuItem icon="notifications" title="Notificări" color="#FF9800" />
         </View>
 
-        {/* Secțiunea Suport */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Suport</Text>
           <MenuItem icon="help-circle" title="Întrebări Frecvente" color="#4CAF50" />
           <MenuItem icon="document-text" title="Termeni și Condiții" color="#607D8B" />
         </View>
 
-        {/* Buton Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogoutPress}>
           <Ionicons name="log-out-outline" size={24} color="#FF4B4B" style={{marginRight: 10}}/>
           <Text style={styles.logoutText}>Deconectare</Text>

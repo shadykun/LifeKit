@@ -1,20 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native'; 
+import React, { useEffect, useState, createContext } from 'react';
+import { View, ActivityIndicator, Appearance } from 'react-native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import LoginScreen from './LoginScreen'; 
 import MainApp from './MainApp';
 
+export const ThemeContext = createContext();
+
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [userToken, setUserToken] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(Appearance.getColorScheme() === 'dark');
 
   useEffect(() => {
     const bootstrapAsync = async () => {
       let token;
       try {
         token = await AsyncStorage.getItem('userToken');
+        const storedTheme = await AsyncStorage.getItem('appTheme');
+        if (storedTheme !== null) {
+          setIsDarkMode(storedTheme === 'dark');
+          Appearance.setColorScheme(storedTheme);
+        } else {
+          Appearance.setColorScheme(Appearance.getColorScheme());
+        }
       } catch (e) {
         console.log('Restoring token failed', e);
       }
@@ -23,6 +33,12 @@ export default function App() {
     };
 
     bootstrapAsync();
+
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      setIsDarkMode(colorScheme === 'dark');
+    });
+
+    return () => subscription.remove();
   }, []);
 
   const handleLoginSuccess = () => {
@@ -31,6 +47,13 @@ export default function App() {
 
   const handleLogout = () => {
     setUserToken(null);
+  };
+
+  const toggleDarkMode = async () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    await AsyncStorage.setItem('appTheme', newMode ? 'dark' : 'light');
+    Appearance.setColorScheme(newMode ? 'dark' : 'light');
   };
 
   if (isLoading) {
