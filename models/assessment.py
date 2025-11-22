@@ -21,3 +21,13 @@ class Quiz(Base):
     # Quiz-ul aparține unui Chapter (nu direct cursului, conform diagramei)
     chapter_id = Column(Integer, ForeignKey('chapters.id'))
     chapter = relationship("Chapter", back_populates="quizzes")
+
+class Question(Base):
+    __tablename__ = 'questions'
+
+    id = Column(Integer, primary_key=True, index=True)
+    question_text = Column(String, nullable=False)
+
+    answer_text = Column(String, nullable=False)
+    quiz_id = Column(Integer, ForeignKey('quizzes.id'))
+    quiz = relationship("Quiz", back_populates='questions')
