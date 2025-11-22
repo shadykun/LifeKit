@@ -2,7 +2,6 @@ from fastapi import FastAPI
 
 from database import engine, Base
 
-from models.user import Account
 from models.course import Course, Chapter
 from models.media import Video, Image, Text
 from models.assessment import Flashcard, Quiz, Question
