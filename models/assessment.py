@@ -31,7 +31,9 @@ class Question(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     question_text = Column(String, nullable=False)
-
-    answer_text = Column(String, nullable=False)
+    answer1_text = Column(String, nullable=False)
+    answer2_text = Column(String, nullable=True)
+    answer3_text = Column(String, nullable=True)
+    correct_answer = Column(Integer, nullable=False)  # 1, 2, or 3 indicating the correct answer
     quiz_id = Column(Integer, ForeignKey('quizzes.id'))
     quiz = relationship("Quiz", back_populates='questions')
