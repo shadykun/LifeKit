@@ -75,6 +75,16 @@ def seed_courses(session):
             title="Stabilizarea victimelor traumatizate",
             description="Evaluarea rapidă a victimelor cu traumatisme și prevenirea agravării leziunilor.",
         ),
+        Course(
+            title="Primul ajutor pentru nou-născuți și sugari",
+            description="Identificarea urgențelor la bebeluși: obstrucție de căi aeriene, febră, convulsii și tehnici de resuscitare adaptate vârstei.",
+            parenting=True
+        ),
+        Course(
+            title="Siguranța copilului în primul an de viață",
+            description="Prevenirea accidentelor casnice, gestionarea riscurilor și principiile esențiale de supraveghere a nou-născutului.",
+            parenting=True
+),
     ]
     session.add_all(courses)
     session.flush()
@@ -145,6 +155,19 @@ def seed_texts(session):
                 " victima în linie neutră și evaluează respirația la fiecare 30 de secunde."
             )
         ),
+        TextBlock(
+            body_content=(
+        "Pentru bebeluși sub 1 an, obstrucția severă de căi aeriene se tratează "
+        "prin 5 lovituri între omoplați și 5 compresii toracice. Nu se aplică Heimlich."
+        )
+    ),
+    TextBlock(
+        body_content=(
+        "Cele mai frecvente accidente ale nou-născutului includ căderile, "
+        "arsurile și sufocarea. Părinții trebuie să asigure un mediu sigur "
+        "prin supraveghere constantă și eliminarea riscurilor."
+    )
+),
     ]
     session.add_all(texts)
     session.flush()
@@ -154,23 +177,35 @@ def seed_texts(session):
 def seed_images(session, courses, texts):
     images = [
         Image(
-            url="https://cdn.safeaid.org/images/tourniquet-placement.png",
+            url="https://wikimami.ro/wp-content/uploads/2022/10/sangerari.jpg",
             alt_text="Pași pentru aplicarea unui garou pe membrul superior",
             course=courses[0],
             text=texts[0],
         ),
         Image(
-            url="https://cdn.safeaid.org/images/aed-pad-placement.png",
+            url="https://image.stirileprotv.ro/media/images/680xX/Dec2011/60532296.jpg",
             alt_text="Poziționarea corectă a electrozilor AED la adult",
             course=courses[1],
             text=texts[1],
         ),
         Image(
-            url="https://cdn.safeaid.org/images/log-roll-team.png",
+            url="https://clinica-aliat-suceava.ro/wp-content/uploads/elementor/thumbs/trauma-si-mecanismele-de-coping-qs60ap4gs9tczhg7anmxpinp7i0exdotlvz5twi360.jpg",
             alt_text="Echipă demonstrând manevra log-roll cu stabilizarea capului",
             course=courses[2],
             text=texts[2],
         ),
+        Image(
+             url="https://wikimami.ro/wp-content/uploads/2022/11/compresii-toracice-bebelusi.png",
+            alt_text="Demonstrație tehnică back blows + compresii toracice la sugar",
+            course=courses[3],
+            text=texts[3],
+        ),
+        Image(
+        url="https://cdn.contentspeed.ro/slir/w600/chicco.websales.ro/cs-content/cs-photos/blog/original//374_1707736126.jpg.webp",
+        alt_text="Exemplu de casă pregătită pentru siguranța unui nou-născut",
+        course=courses[4],
+        text=texts[4],
+),
     ]
     session.add_all(images)
     session.flush()
@@ -194,6 +229,16 @@ def seed_flashcards(session, courses):
             back_text="Durere cervicală severă asociată cu parestezii sau deficit motor la membre.",
             course=courses[2],
         ),
+        Flashcard(
+        front_text="Ce tehnică se folosește pentru obstrucția de căi aeriene la sugar?",
+        back_text="5 lovituri între omoplați + 5 compresii toracice, repetate.",
+        course=courses[3],
+        ),
+        Flashcard(
+        front_text="Care este cea mai importantă regulă de siguranță în primul an de viață?",
+        back_text="Supravegherea constantă și eliminarea riscurilor din mediul casei.",
+        course=courses[4],
+),
     ]
     session.add_all(flashcards)
     session.flush()
@@ -205,8 +250,11 @@ def seed_quizzes(session, chapters):
     # Lista chapters are 9 elemente (3 cursuri * 3 capitole)
     quizzes = [
         Quiz(title="Controlul hemoragiei - verificare rapidă", chapter=chapters[0]),
-        Quiz(title="CPR avansat - recapitulare", chapter=chapters[3]), # Cap 1 din Cursul 2
-        Quiz(title="Imobilizarea victimelor", chapter=chapters[6]),     # Cap 1 din Cursul 3
+        Quiz(title="CPR avansat - recapitulare", chapter=chapters[3]), 
+        Quiz(title="Imobilizarea victimelor", chapter=chapters[6]),     
+        Quiz(title="Primul ajutor la nou-născuți - test rapid", chapter=chapters[9]),
+        Quiz(title="Siguranța bebelușului - verificare generală", chapter=chapters[12]),
+
     ]
     session.add_all(quizzes)
     session.flush()
@@ -223,10 +271,10 @@ def seed_questions(session, quizzes):
     - answer3_text
     - correct_answer (int: 1, 2, sau 3)
     """
-    
+
     # Structura datelor: Listă de liste, unde fiecare sub-listă corespunde unui Quiz
     all_questions_data = [
-        # Set pentru Quiz 1: Hemoragii
+   
         [
             {
                 "q": "Care este prima acțiune când observi o hemoragie masivă?",
@@ -250,7 +298,7 @@ def seed_questions(session, quizzes):
                 "correct": 3
             },
         ],
-        # Set pentru Quiz 2: CPR (Resuscitare)
+
         [
             {
                 "q": "Care este raportul compresii-ventilații pentru un adult cu un singur salvator?",
@@ -274,7 +322,7 @@ def seed_questions(session, quizzes):
                 "correct": 2
             },
         ],
-        # Set pentru Quiz 3: Traumatisme (Imobilizare)
+
         [
             {
                 "q": "Când se aplică gulerul cervical rigid?",
@@ -298,21 +346,68 @@ def seed_questions(session, quizzes):
                 "correct": 2
             },
         ],
+
+        [
+            {
+                "q": "Care este primul pas în obstrucția severă a căilor aeriene la sugar?",
+                "a1": "Aplici manevra Heimlich.",
+                "a2": "Administrezi 5 lovituri ferme între omoplați.",
+                "a3": "Îi dai apă pentru a înghiți mai ușor.",
+                "correct": 2
+            },
+            {
+                "q": "Câte compresii toracice se aplică la sugar în obstrucție?",
+                "a1": "3 compresii.",
+                "a2": "5 compresii.",
+                "a3": "10 compresii.",
+                "correct": 2
+            },
+            {
+                "q": "Cum verifici starea sugarului după ciclurile 5+5?",
+                "a1": "Dacă plânge sau tușește, înseamnă că respirația a revenit.",
+                "a2": "Ții sugarul în poziție verticală 5 minute.",
+                "a3": "Aplici masaj cardiac imediat.",
+                "correct": 1
+            },
+        ],
+
+        [
+            {
+                "q": "Care este cea mai frecventă cauză de accident la bebeluși?",
+                "a1": "Căderile de la mică înălțime.",
+                "a2": "Înțepăturile cu insecte.",
+                "a3": "Răcelile sezoniere.",
+                "correct": 1
+            },
+            {
+                "q": "Ce NU trebuie lăsat niciodată lângă un nou-născut?",
+                "a1": "Perne și pături voluminoase.",
+                "a2": "O lumină de veghe.",
+                "a3": "Un prosop rulat sub cap.",
+                "correct": 1
+            },
+            {
+                "q": "Care este regula de aur pentru prevenirea sufocării?",
+                "a1": "Obiectele trebuie să fie mai mari decât diametrul gurii bebelușului.",
+                "a2": "Bebelușul trebuie să doarmă pe burtă.",
+                "a3": "Bebelușul poate mânca orice dacă este supravegheat.",
+                "correct": 1
+            },
+        ],
     ]
 
-    # Iterăm prin quiz-uri și datele aferente
     for quiz, questions_list in zip(quizzes, all_questions_data):
         for item in questions_list:
             new_q = Question(
-                question_text=item["q"],  # Conform numelui din clasa ta
+                question_text=item["q"],
                 answer1_text=item["a1"],
                 answer2_text=item["a2"],
                 answer3_text=item["a3"],
-                correct_answer=item["correct"], # Integer 1, 2 sau 3
+                correct_answer=item["correct"],
                 quiz=quiz
             )
             session.add(new_q)
-            
+
     session.flush()
 
 
