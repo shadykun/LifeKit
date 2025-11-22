@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey,Boolean
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -9,6 +9,7 @@ class Course(Base):
     title = Column(String, nullable=False)
     description = Column(String)
 
+    parenting = Column(Boolean,default=False) 
     chapters = relationship("Chapter", back_populates="course", cascade="all, delete-orphan")
     videos = relationship("Video", back_populates="course")
     images = relationship("Image", back_populates="course")

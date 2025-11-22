@@ -5,6 +5,7 @@ from typing import Optional, List
 class CourseBase(BaseModel):
     title: str
     description: Optional[str] = None
+    parenting: bool = False
 
 class CourseCreate(CourseBase):
     pass
