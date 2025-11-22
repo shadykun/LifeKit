@@ -7,9 +7,8 @@ export default function MapScreen() {
   const [loading, setLoading] = useState(true);
 
   
-  const API_URL = `http://localhost:8000`; 
+  const API_URL = `http://ec2-63-178-67-11.eu-central-1.compute.amazonaws.com:8000`; 
 
-  // Locația centrului din CLUJ
   const userLocation = {
     latitude: 46.770439,
     longitude: 23.591423,
@@ -19,7 +18,7 @@ export default function MapScreen() {
     console.log(`Încerc să mă conectez la: ${API_URL}`);
 
     fetch(
-      `${API_URL}/first-aid-centers-cluj?lat=${userLocation.latitude}&lon=${userLocation.longitude}&radius=5000`
+      `${API_URL}/first-aid-centers?lat=${userLocation.latitude}&lon=${userLocation.longitude}&radius=5000`
     )
       .then((res) => {
         if (!res.ok) {

@@ -13,22 +13,13 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.nume.hermeshackathon",
-      "config": {
-        "googleMapsApiKey": "AIzaSyCS0iJgJr3zZWMkGJiIytrH3Acw0MuNkXU"
-      }
+      "supportsTablet": true
     },
     "android": {
       "package": "com.nume.hermeshackathon",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyCS0iJgJr3zZWMkGJiIytrH3Acw0MuNkXU"
-        }
       },
       "edgeToEdgeEnabled": true
     },

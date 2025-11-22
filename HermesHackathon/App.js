@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native'; // AICI este containerul suprem
+import { NavigationContainer } from '@react-navigation/native'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Importăm ecranele
-// Notă: Ajustează calea dacă LoginScreen e în folderul 'screens'
-import LoginScreen from './LoginScreen'; // Sau './LoginScreen' dacă e în root
+import LoginScreen from './LoginScreen'; 
 import MainApp from './MainApp';
 
 export default function App() {
@@ -20,7 +18,6 @@ export default function App() {
       } catch (e) {
         console.log('Restoring token failed', e);
       }
-      // După ce am verificat stocarea, actualizăm starea
       setUserToken(token);
       setIsLoading(false);
     };
@@ -28,9 +25,7 @@ export default function App() {
     bootstrapAsync();
   }, []);
 
-  // Funcții de control pentru Login/Logout
   const handleLoginSuccess = () => {
-    // Când ne logăm, setăm token-ul (chiar și unul dummy) ca să schimbăm ecranul
     setUserToken('logged-in'); 
   };
 
@@ -38,7 +33,6 @@ export default function App() {
     setUserToken(null);
   };
 
-  // 1. Cât timp verificăm memoria, arătăm un spinner
   if (isLoading) {
     return (
       <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
@@ -47,14 +41,11 @@ export default function App() {
     );
   }
 
-  // 2. Structura Principală
   return (
     <NavigationContainer>
       {userToken == null ? (
-        // Dacă NU suntem logați, arătăm ecranul de Login
         <LoginScreen onLoginSuccess={handleLoginSuccess} />
       ) : (
-        // Dacă suntem logați, arătăm Aplicația Principală
         <MainApp onLogout={handleLogout}/>
       )}
     </NavigationContainer>
