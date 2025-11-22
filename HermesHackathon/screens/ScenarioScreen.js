@@ -1,67 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert 
+  View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert, Linking, Platform 
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ApiService } from '../services/ApiService';
 
 export default function ScenarioScreen({ navigation, route }) {
-  // Primim ID-ul modulului curent pentru a ști ce să afișăm
   const { moduleId, moduleTitle } = route.params || {};
-
+  
   const [viewMode, setViewMode] = useState('selection'); 
   const [loading, setLoading] = useState(false);
   
-  // Date procesate (Pași combinați Text + Imagine)
   const [scenarioSteps, setScenarioSteps] = useState([]);
   const [videos, setVideos] = useState([]);
-
-  // Indexul pasului curent
+  
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
-  // --- FETCH & PREPARE DATA ---
+  // --- 1. ÎNCĂRCARE DATE ---
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      console.log(`[Scenario] Caut resurse cu ID: ${moduleId}`);
+      
       try {
-        console.log(`[Scenario] Încărcăm date pentru Module ID: ${moduleId}`);
-
-        // 1. Luăm toate datele brute de pe server
         const [allTexts, allImages, allVideos] = await Promise.all([
           ApiService.getTexts(),
           ApiService.getImages(),
           ApiService.getVideos()
         ]);
 
-        // 2. FILTRARE (Critică!)
-        // Păstrăm doar elementele care aparțin acestui curs/modul.
-        // Presupunem că backend-ul are un câmp 'course_id' sau similar.
-        // Dacă backend-ul nu are acest câmp, va afișa tot (fallback).
-        
-        const filteredTexts = allTexts.filter(t => t.course_id == moduleId || !t.course_id);
-        const filteredImages = allImages.filter(i => i.course_id == moduleId || !i.course_id);
-        const filteredVideos = allVideos.filter(v => v.course_id == moduleId || !v.course_id);
+        // A. FILTRARE STRICTĂ DUPĂ ID
+        const relevantTexts = allTexts.filter(t => String(t.id) === String(moduleId));
+        const relevantImages = allImages.filter(i => String(i.id) === String(moduleId));
+        const relevantVideos = allVideos.filter(v => String(v.id) === String(moduleId));
 
-        // 3. COMBINARE (Mapping)
-        // Creăm o listă de "Pași" unde unim Textul[i] cu Imaginea[i]
-        // Astfel ne asigurăm că rămân sincronizate.
-        const combinedSteps = filteredTexts.map((textItem, index) => {
-          // Încercăm să găsim imaginea corespunzătoare (aceeași poziție sau id similar)
-          const imageItem = filteredImages[index] || null;
+        // B. COMBINARE (Mapping)
+        const steps = relevantTexts.map((textItem, index) => {
+          const imageItem = relevantImages[index] || relevantImages[0] || null;
           
           return {
             id: textItem.id,
-            text: textItem.content || textItem.text || "Fără text",
-            imageUrl: imageItem ? (imageItem.url || imageItem.path) : null
+            text: textItem.body_content || textItem.text || "Text indisponibil",
+            imageUrl: imageItem ? (imageItem.url || imageItem.path || imageItem.link) : null
           };
         });
 
-        setScenarioSteps(combinedSteps);
-        setVideos(filteredVideos);
+        setScenarioSteps(steps);
+        setVideos(relevantVideos);
 
       } catch (error) {
-        console.error("Eroare scenariu:", error);
-        Alert.alert("Eroare", "Nu am putut descărca conținutul lecției.");
+        console.error("[Scenario Error]", error);
+        Alert.alert("Eroare", "Nu am putut descărca datele.");
       } finally {
         setLoading(false);
       }
@@ -70,14 +59,13 @@ export default function ScenarioScreen({ navigation, route }) {
     fetchData();
   }, [moduleId]);
 
-  // --- NAVIGARE INTERNĂ ---
+  // --- NAVIGARE ---
   const handleNextStep = () => {
     if (currentStepIndex < scenarioSteps.length - 1) {
       setCurrentStepIndex(prev => prev + 1);
     } else {
-      // Final de scenariu
-      Alert.alert("Felicitări!", "Ai parcurs toți pașii acestei lecții.", [
-        { text: "OK", onPress: goBackToMenu }
+      Alert.alert("Felicitări!", "Ai parcurs toată lecția.", [
+        { text: "Înapoi la Meniu", onPress: goBackToMenu }
       ]);
     }
   };
@@ -93,45 +81,55 @@ export default function ScenarioScreen({ navigation, route }) {
     setCurrentStepIndex(0);
   };
 
+  // --- FUNCȚIE PENTRU DESCHIDERE VIDEO ---
+  const openVideoLink = async (url) => {
+    if (!url) {
+      Alert.alert("Ups!", "Nu există un link valid pentru acest video.");
+      return;
+    }
+    
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("Eroare", "Nu pot deschide acest link: " + url);
+      }
+    } catch (err) {
+      console.error("Eroare la deschiderea link-ului:", err);
+      Alert.alert("Eroare", "Ceva nu a mers bine la deschiderea videoclipului.");
+    }
+  };
+
   // =================================================
-  // 1. MENIU SELECȚIE
+  // RENDER: 1. MENIU SELECȚIE
   // =================================================
   const renderSelectionScreen = () => (
     <View style={styles.menuContainer}>
       <View style={styles.headerContainer}>
         <Ionicons name="school-outline" size={60} color="#007AFF" />
         <Text style={styles.menuTitle}>Lecție: {moduleTitle || "Curs"}</Text>
-        <Text style={styles.menuSubtitle}>Cum vrei să înveți?</Text>
+        <Text style={styles.menuSubtitle}>Alege metoda de învățare</Text>
       </View>
 
-      <TouchableOpacity 
-        style={styles.modeCard} 
-        onPress={() => setViewMode('interactive')}
-      >
+      <TouchableOpacity style={styles.modeCard} onPress={() => setViewMode('interactive')}>
         <View style={[styles.iconBox, { backgroundColor: '#E3F2FD' }]}>
           <Ionicons name="document-text" size={32} color="#1565C0" />
         </View>
         <View style={styles.cardTextContent}>
           <Text style={styles.modeTitle}>Ghid Pas cu Pas</Text>
-          <Text style={styles.modeDesc}>
-            {scenarioSteps.length} pași de parcurs cu text și imagini explicative.
-          </Text>
+          <Text style={styles.modeDesc}>Citește instrucțiunile și vizualizează imaginile.</Text>
         </View>
         <Ionicons name="chevron-forward" size={24} color="#ccc" />
       </TouchableOpacity>
 
-      <TouchableOpacity 
-        style={styles.modeCard} 
-        onPress={() => setViewMode('kids')}
-      >
+      <TouchableOpacity style={styles.modeCard} onPress={() => setViewMode('kids')}>
         <View style={[styles.iconBox, { backgroundColor: '#FFF3E0' }]}>
           <Ionicons name="videocam" size={32} color="#EF6C00" />
         </View>
         <View style={styles.cardTextContent}>
           <Text style={styles.modeTitle}>Video Demonstrativ</Text>
-          <Text style={styles.modeDesc}>
-            {videos.length > 0 ? "Vizionează clipul video." : "Momentan nu există video."}
-          </Text>
+          <Text style={styles.modeDesc}>Vizionează clipul video explicativ.</Text>
         </View>
         <Ionicons name="chevron-forward" size={24} color="#ccc" />
       </TouchableOpacity>
@@ -139,129 +137,152 @@ export default function ScenarioScreen({ navigation, route }) {
   );
 
   // =================================================
-  // 2. MOD VIDEO
+  // RENDER: 2. MOD LECTIE (INTERACTIV)
   // =================================================
-  const renderKidsMode = () => {
-    const currentVideo = videos.length > 0 ? videos[0] : null;
+  const renderInteractiveMode = () => {
+    if (scenarioSteps.length === 0) {
+      return (
+        <View style={styles.centerContent}>
+           <Ionicons name="library-outline" size={60} color="#ccc" />
+           <Text style={styles.emptyText}>Nu am găsit text pentru acest ID ({moduleId}).</Text>
+           <TouchableOpacity style={styles.backTextBtn} onPress={goBackToMenu}>
+             <Text style={{color: '#007AFF', fontWeight: 'bold'}}>Înapoi la Meniu</Text>
+           </TouchableOpacity>
+        </View>
+      );
+    }
+
+    const currentStep = scenarioSteps[currentStepIndex];
 
     return (
-      <View style={styles.contentContainer}>
-        <TouchableOpacity style={styles.backButtonTop} onPress={goBackToMenu}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-          <Text style={styles.backText}>Înapoi</Text>
-        </TouchableOpacity>
+      <View style={{flex: 1}}> 
+        {/* Header Fix sus */}
+        <View style={styles.lessonHeaderBar}>
+           <TouchableOpacity onPress={goBackToMenu} style={{padding: 5}}>
+             <Ionicons name="close" size={24} color="#333"/>
+           </TouchableOpacity>
+           <Text style={styles.lessonProgressText}>
+             Pagina {currentStepIndex + 1} din {scenarioSteps.length}
+           </Text>
+           <View style={{width: 24}} />
+        </View>
 
-        {currentVideo ? (
-          <View style={styles.videoCard}>
-            <View style={styles.videoPlayerPlaceholder}>
-              <Ionicons name="play-circle" size={80} color="white" />
-              <Text style={{color:'white', marginTop:10}}>VIDEO PLAYER</Text>
-            </View>
-            <Text style={styles.videoTitle}>{currentVideo.title || "Demonstrație Video"}</Text>
-            <Text style={styles.videoDesc}>{currentVideo.description || "Urmărește procedura corectă."}</Text>
+        <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBarFill, { width: `${((currentStepIndex + 1) / scenarioSteps.length) * 100}%` }]} />
+        </View>
+
+        <ScrollView contentContainerStyle={styles.lessonScrollContent}>
+          <Text style={styles.stepTitle}>Pasul {currentStepIndex + 1}</Text>
+
+          {currentStep.imageUrl ? (
+             <Image 
+               source={{ uri: currentStep.imageUrl }} 
+               style={styles.lessonImage}
+               resizeMode="cover"
+             />
+           ) : null}
+
+          <View style={styles.lessonBody}>
+            <Text style={styles.lessonText}>
+              {currentStep.text}
+            </Text>
           </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="videocam-off" size={50} color="#ccc" />
-            <Text style={styles.emptyText}>Nu există video pentru acest modul.</Text>
-          </View>
-        )}
+        </ScrollView>
+
+        <View style={styles.lessonFooter}>
+          <TouchableOpacity 
+            style={[styles.navBtn, currentStepIndex === 0 && styles.disabledNavBtn]} 
+            onPress={handlePrevStep}
+            disabled={currentStepIndex === 0}
+          >
+            <Ionicons name="chevron-back" size={20} color={currentStepIndex === 0 ? "#ccc" : "#333"} />
+            <Text style={[styles.navBtnText, currentStepIndex === 0 && {color: '#ccc'}]}>Înapoi</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.navBtn, styles.nextNavBtn]} 
+            onPress={handleNextStep}
+          >
+            <Text style={[styles.navBtnText, {color: '#fff'}]}>
+              {currentStepIndex === scenarioSteps.length - 1 ? "Finalizare" : "Următorul Pas"}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
 
   // =================================================
-  // 3. MOD INTERACTIV (FIXAT)
+  // RENDER: 3. MOD VIDEO (KIDS) - ACUM CU YOUTUBE
   // =================================================
-  const renderInteractiveMode = () => {
-    if (scenarioSteps.length === 0) {
-      return (
-        <View style={styles.contentContainer}>
-           <TouchableOpacity style={styles.backButtonTop} onPress={goBackToMenu}>
-             <Ionicons name="arrow-back" size={24} color="#333" />
-             <Text style={styles.backText}>Înapoi</Text>
-           </TouchableOpacity>
-           <View style={styles.emptyState}>
-             <Ionicons name="library-outline" size={50} color="#ccc" />
-             <Text style={styles.emptyText}>Această lecție nu are conținut text încă.</Text>
-           </View>
-        </View>
-      );
-    }
-
-    // Datele pasului curent
-    const currentStep = scenarioSteps[currentStepIndex];
+  const renderKidsMode = () => {
+    const currentVideo = videos.length > 0 ? videos[0] : null;
+    
+    // Extragem link-ul video (suportă diverse denumiri de câmpuri)
+    const videoUrl = currentVideo ? (currentVideo.url || currentVideo.link || currentVideo.path) : null;
 
     return (
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header Navigare */}
-        <View style={styles.navBar}>
-           <TouchableOpacity onPress={goBackToMenu} style={styles.miniBackBtn}>
-             <Ionicons name="close-circle" size={28} color="#007AFF"/>
-           </TouchableOpacity>
-           <Text style={styles.stepCounter}>Pasul {currentStepIndex + 1} / {scenarioSteps.length}</Text>
-           <View style={{width: 28}} />
-        </View>
+      <View style={styles.contentContainer}>
+        <TouchableOpacity onPress={goBackToMenu} style={styles.backRow}>
+           <Ionicons name="arrow-back" size={24} color="#333" />
+           <Text style={styles.backLabel}>Înapoi</Text>
+        </TouchableOpacity>
+        
+        {currentVideo ? (
+          <View style={styles.kidsContainer}>
+            {/* Titlu Prietenos */}
+            <Text style={styles.kidsTitle}>Salut, micule salvator! 👋</Text>
+            <Text style={styles.kidsSubtitle}>Urmărește acest video ca să înveți cum să ajuți.</Text>
+            
+            {/* Card Video Youtube */}
+            <TouchableOpacity 
+              style={styles.youtubeCard} 
+              activeOpacity={0.9} 
+              onPress={() => openVideoLink(videoUrl)}
+            >
+                {/* Thumbnail Placeholder (Sau imagine reală dacă ai) */}
+                <View style={styles.thumbnailContainer}>
+                   <View style={styles.playButtonCircle}>
+                      <Ionicons name="play" size={40} color="#FF0000" style={{marginLeft: 5}} />
+                   </View>
+                   <Text style={styles.watchText}>Vizionează pe YouTube</Text>
+                </View>
+                
+                <View style={styles.videoInfo}>
+                   <Text style={styles.videoCardTitle}>{currentVideo.title || "Lecție Video"}</Text>
+                   <Text style={styles.videoCardDesc}>{currentVideo.description || "Învață primii pași în siguranță."}</Text>
+                </View>
+            </TouchableOpacity>
 
-        {/* --- IMAGINEA PASULUI --- */}
-        <View style={styles.imageContainer}>
-           {currentStep.imageUrl ? (
-             <Image 
-               source={{ uri: currentStep.imageUrl }} 
-               style={styles.scenarioImage}
-               resizeMode="cover"
-             />
-           ) : (
-             <View style={styles.imagePlaceholder}>
-               <Ionicons name="image-outline" size={50} color="#ccc" />
-               <Text style={{color:'#999', marginTop: 5}}>Imagine indisponibilă</Text>
-             </View>
-           )}
-        </View>
+            {/* Notă informativă */}
+            <View style={styles.noteBox}>
+              <Ionicons name="information-circle-outline" size={24} color="#555" />
+              <Text style={styles.noteText}>
+                Vei fi redirecționat către aplicația YouTube pentru a vedea filmulețul.
+              </Text>
+            </View>
 
-        {/* --- TEXTUL PASULUI --- */}
-        <View style={styles.textCard}>
-          <Text style={styles.questionText}>
-            {currentStep.text}
-          </Text>
-        </View>
-
-        {/* --- CONTROALE --- */}
-        <View style={styles.controlsRow}>
-          <TouchableOpacity 
-            style={[styles.controlBtn, currentStepIndex === 0 && styles.disabledBtn]} 
-            onPress={handlePrevStep}
-            disabled={currentStepIndex === 0}
-          >
-            <Ionicons name="arrow-back" size={20} color="#fff" />
-            <Text style={styles.controlText}>Anterior</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.controlBtn, styles.nextBtn]} 
-            onPress={handleNextStep}
-          >
-            <Text style={styles.controlText}>
-              {currentStepIndex === scenarioSteps.length - 1 ? "Finalizare" : "Următor"}
-            </Text>
-            <Ionicons 
-              name={currentStepIndex === scenarioSteps.length - 1 ? "checkmark-circle" : "arrow-forward"} 
-              size={20} 
-              color="#fff" 
-            />
-          </TouchableOpacity>
-        </View>
-
-      </ScrollView>
+          </View>
+        ) : (
+            <View style={styles.centerContent}>
+               <Ionicons name="videocam-off-outline" size={60} color="#ccc" />
+               <Text style={styles.emptyText}>Nu am găsit niciun video distractiv pentru acest modul.</Text>
+               <TouchableOpacity style={styles.backTextBtn} onPress={goBackToMenu}>
+                 <Text style={{color: '#007AFF', fontWeight: 'bold'}}>Încearcă alt mod</Text>
+               </TouchableOpacity>
+            </View>
+        )}
+      </View>
     );
   };
 
-  // --- RENDER PRINCIPAL ---
+  // --- LOADING ---
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={{marginTop: 10, color: '#666'}}>Pregătim lecția...</Text>
+        <Text style={{marginTop: 10, color: '#666'}}>Încărcăm datele...</Text>
       </View>
     );
   }
@@ -269,8 +290,8 @@ export default function ScenarioScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.mainContainer}>
       {viewMode === 'selection' && renderSelectionScreen()}
-      {viewMode === 'kids' && renderKidsMode()}
       {viewMode === 'interactive' && renderInteractiveMode()}
+      {viewMode === 'kids' && renderKidsMode()}
     </SafeAreaView>
   );
 }
@@ -278,58 +299,75 @@ export default function ScenarioScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: '#F5F7FA' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
-  // Meniu
+  
+  // Meniu Principal
   menuContainer: { flex: 1, padding: 20, justifyContent: 'center' },
   headerContainer: { alignItems: 'center', marginBottom: 40 },
-  menuTitle: { fontSize: 24, fontWeight: 'bold', color: '#333', marginTop: 15, marginBottom: 5, textAlign: 'center' },
+  menuTitle: { fontSize: 24, fontWeight: 'bold', color: '#333', marginTop: 15 },
   menuSubtitle: { fontSize: 16, color: '#666' },
-  
-  modeCard: { 
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 20, 
-    borderRadius: 16, marginBottom: 20, elevation: 3, shadowColor: '#000', shadowOffset: {width:0, height:2}, shadowOpacity: 0.1 
-  },
+  modeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 20, borderRadius: 16, marginBottom: 20, elevation: 3 },
   iconBox: { width: 50, height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   cardTextContent: { flex: 1, marginRight: 10 },
-  modeTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 4 },
-  modeDesc: { fontSize: 13, color: '#666', lineHeight: 18 },
+  modeTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+  modeDesc: { fontSize: 13, color: '#666' },
 
-  // Common
-  contentContainer: { flex: 1, padding: 20 },
-  backButtonTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, alignSelf: 'flex-start' },
-  backText: { fontSize: 16, fontWeight: '600', color: '#333', marginLeft: 5 },
-  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 },
-  emptyText: { color: '#999', marginTop: 10, fontSize: 16 },
-
-  // Video
-  videoCard: { backgroundColor: '#fff', borderRadius: 20, padding: 15, elevation: 3 },
-  videoPlayerPlaceholder: { width: '100%', height: 220, backgroundColor: '#000', borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
-  videoTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 5 },
-  videoDesc: { fontSize: 15, color: '#666', lineHeight: 22 },
-
-  // Interactive
-  scrollContent: { padding: 20, paddingBottom: 40 },
-  navBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  miniBackBtn: { padding: 5 },
-  stepCounter: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  // --- STILURI KIDS MODE (NOU) ---
+  kidsContainer: { flex: 1, alignItems: 'center', paddingHorizontal: 10 },
+  kidsTitle: { fontSize: 26, fontWeight: 'bold', color: '#FF9800', marginBottom: 8, textAlign: 'center' },
+  kidsSubtitle: { fontSize: 16, color: '#666', marginBottom: 30, textAlign: 'center' },
   
-  imageContainer: { 
-    width: '100%', height: 220, marginBottom: 25, backgroundColor: '#fff', 
-    borderRadius: 16, justifyContent: 'center', alignItems: 'center', elevation: 2, overflow: 'hidden',
+  youtubeCard: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    overflow: 'hidden',
+    elevation: 5,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 5,
+    marginBottom: 30,
     borderWidth: 1, borderColor: '#eee'
   },
-  scenarioImage: { width: '100%', height: '100%' },
-  imagePlaceholder: { alignItems: 'center' },
-  
-  textCard: { backgroundColor: '#fff', padding: 25, borderRadius: 16, marginBottom: 30, elevation: 2, minHeight: 150, justifyContent: 'center' },
-  questionText: { fontSize: 18, color: '#333', lineHeight: 28, textAlign: 'center', fontWeight: '500' },
-  
-  controlsRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  controlBtn: { 
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#90A4AE', 
-    paddingVertical: 14, paddingHorizontal: 24, borderRadius: 30 
+  thumbnailContainer: {
+    height: 180,
+    backgroundColor: '#222',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  nextBtn: { backgroundColor: '#007AFF' },
-  disabledBtn: { backgroundColor: '#E0E0E0', opacity: 0.7 },
-  controlText: { color: '#fff', fontWeight: 'bold', marginHorizontal: 8, fontSize: 16 },
+  playButtonCircle: {
+    width: 70, height: 70, borderRadius: 35, backgroundColor: '#fff',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 10
+  },
+  watchText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  videoInfo: { padding: 20 },
+  videoCardTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginBottom: 6 },
+  videoCardDesc: { fontSize: 14, color: '#666', lineHeight: 20 },
+
+  noteBox: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2FD',
+    padding: 15, borderRadius: 12, marginHorizontal: 10
+  },
+  noteText: { flex: 1, marginLeft: 10, color: '#1565C0', fontSize: 14 },
+
+  // --- STILURI LECȚIE INTERACTIVĂ ---
+  lessonHeaderBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
+  lessonProgressText: { fontSize: 14, fontWeight: '600', color: '#666' },
+  progressBarContainer: { height: 3, backgroundColor: '#E0E0E0', width: '100%' },
+  progressBarFill: { height: '100%', backgroundColor: '#007AFF' },
+  lessonScrollContent: { padding: 20, paddingBottom: 100 },
+  stepTitle: { fontSize: 22, fontWeight: 'bold', color: '#333', marginBottom: 20, textTransform: 'uppercase', letterSpacing: 0.5 },
+  lessonImage: { width: '100%', height: 220, borderRadius: 12, marginBottom: 25, backgroundColor: '#eee' },
+  lessonBody: { marginTop: 0 },
+  lessonText: { fontSize: 18, lineHeight: 28, color: '#2c3e50', textAlign: 'left' },
+  lessonFooter: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#eee', flexDirection: 'row', padding: 15, justifyContent: 'space-between', alignItems: 'center' },
+  navBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 15, borderRadius: 8 },
+  nextNavBtn: { backgroundColor: '#007AFF', paddingHorizontal: 20 },
+  disabledNavBtn: { opacity: 0.5 },
+  navBtnText: { fontSize: 16, fontWeight: '600', color: '#333', marginHorizontal: 5 },
+
+  // Common
+  contentContainer: { padding: 20, flex: 1 },
+  backRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, alignSelf: 'flex-start' },
+  backLabel: { fontSize: 16, fontWeight: 'bold', color: '#333', marginLeft: 5 },
+  centerContent: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 },
+  emptyText: { color: '#999', fontSize: 16, textAlign: 'center', marginTop: 10, marginBottom: 10 },
+  backTextBtn: { padding: 10 }
 });
