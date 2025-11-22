@@ -21,27 +21,30 @@ export default function ModuleDetailScreen({ navigation, route }) {
           <Text style={styles.headerTitle}>{moduleData.title}</Text>
         </View>
 
-        {/* BUTONUL PENTRU SIMULARE (SCENARIU) */}
-        <Text style={styles.sectionTitle}>Activitate Recomandată</Text>
+        {/* BUTONUL PRINCIPAL DE START (AJUSTAT) */}
+        <Text style={styles.sectionTitle}>Începe Cursul</Text>
         
         <TouchableOpacity 
           style={styles.simulationCard} 
           activeOpacity={0.9}
-          onPress={() => navigation.navigate('Scenario')} // Navighează spre ScenarioScreen
+          onPress={() => navigation.navigate('Scenario')} // Te duce la selecția modului
         >
-           <View style={styles.simBadge}><Text style={styles.simBadgeText}>INTERACTIV</Text></View>
-           <Ionicons name="game-controller" size={40} color="#fff" style={{marginBottom: 10}}/>
-           <Text style={styles.simTitle}>Simulare Caz Real</Text>
+           <View style={styles.simBadge}><Text style={styles.simBadgeText}>RECOMANDAT</Text></View>
+           <Ionicons name="school" size={40} color="#fff" style={{marginBottom: 10}}/>
+           
+           {/* TEXT ACTUALIZAT SĂ CORESPUNDĂ CU DESTINAȚIA */}
+           <Text style={styles.simTitle}>Alege Modul de Învățare</Text>
            <Text style={styles.simDesc}>
-             Ești pus într-o situație de urgență. Iei decizii contra cronometru. Poți salva victima?
+             Intră în laboratorul virtual. Poți alege între scenariul interactiv pas-cu-pas sau modul animat simplificat pentru copii.
            </Text>
+           
            <View style={styles.playBtn}>
-             <Text style={{color: '#333', fontWeight: 'bold'}}>ÎNCEPE ACUM</Text>
+             <Text style={{color: '#333', fontWeight: 'bold'}}>START</Text>
            </View>
         </TouchableOpacity>
 
-        {/* Butoane secundare (Placeholders pentru colegul tău) */}
-        <Text style={[styles.sectionTitle, {marginTop: 30}]}>Alte activități</Text>
+        {/* Butoane secundare */}
+        <Text style={[styles.sectionTitle, {marginTop: 30}]}>Exersare Rapidă</Text>
         
         <TouchableOpacity 
            style={styles.actionBtn} 

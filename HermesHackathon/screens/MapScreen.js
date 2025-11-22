@@ -1,43 +1,108 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import React, { useEffect, useState } from "react";
+import { View, ActivityIndicator, StyleSheet, Alert, Text } from "react-native";
+import MapView, { Marker, Callout } from "react-native-maps";
 
-// Acesta este un placeholder. Colegul tău va pune aici harta reală.
 export default function MapScreen() {
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Ionicons name="map" size={80} color="#ccc" />
-        <Text style={styles.title}>Harta Locații</Text>
-        <Text style={styles.subtitle}>
-          Aici va fi implementat Google Maps API.
-        </Text>
+  const [places, setPlaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  
+  const API_URL = `http://ec2-63-178-67-11.eu-central-1.compute.amazonaws.com:8000`; 
+
+  const userLocation = {
+    latitude: 46.770439,
+    longitude: 23.591423,
+  };
+
+  useEffect(() => {
+    console.log(`Încerc să mă conectez la: ${API_URL}`);
+
+    fetch(
+      `${API_URL}/first-aid-centers?lat=${userLocation.latitude}&lon=${userLocation.longitude}&radius=5000`
+    )
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((json) => {
+        setPlaces(json.places || json); 
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Eroare Conexiune Locală:", err);
+        Alert.alert(
+            "Eroare Conexiune", 
+            `Nu mă pot conecta la ${API_URL}.\n\n1. Verifica dacă IP-ul e corect.\n2. Verifica daca serverul ruleaza cu --host 0.0.0.0`
+        );
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={{marginTop: 10, color: '#555'}}>Se caută locații pe rețea...</Text>
       </View>
-    </SafeAreaView>
+    );
+  }
+
+  return (
+    <MapView
+      style={{ flex: 1 }}
+      initialRegion={{
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      }}
+      showsUserLocation={true}
+    >
+
+      <Marker
+        coordinate={userLocation}
+        pinColor="blue"
+        title="Locația ta (Centru Cluj)"
+      />
+
+      {places.map((p, idx) => (
+        <Marker
+          key={idx}
+          coordinate={{
+            latitude: parseFloat(p.lat),
+            longitude: parseFloat(p.lon),
+          }}
+          pinColor="red"
+          title={p.name}
+          description={p.address}
+        >
+            <Callout>
+                <View style={styles.calloutContainer}>
+                    <Text style={styles.calloutTitle}>{p.name}</Text>
+                    <Text>{p.address}</Text>
+                </View>
+            </Callout>
+        </Marker>
+      ))}
+
+    </MapView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  center: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
-  content: {
-    alignItems: 'center',
-    padding: 20,
+  calloutContainer: {
+    width: 200,
+    padding: 5
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 20,
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 10,
+  calloutTitle: {
+      fontWeight: 'bold',
+      marginBottom: 5
   }
 });
