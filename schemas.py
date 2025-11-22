@@ -61,7 +61,10 @@ class Quiz(QuizBase):
 # ----- Question -----
 class QuestionBase(BaseModel):
     question_text: str
-    answer_text: str
+    answer1_text: str
+    answer2_text: str
+    answer3_text: str
+    correct_answer: int
     quiz_id: int
 
 class QuestionCreate(QuestionBase):
