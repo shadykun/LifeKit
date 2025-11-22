@@ -19,7 +19,7 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [passwordVisible, setPassVisibility] = React.useState(true);
-  const [loading, setLoading] = React.useState(false); // Stare pentru loading spinner
+  const [loading, setLoading] = React.useState(false); 
 
   const handleLogin = async () => {
     if (email.trim() === '' || password.trim() === '') {
@@ -50,7 +50,7 @@ export default function LoginScreen({ onLoginSuccess }) {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      handleLogin(); // Logare automată după creare
+      handleLogin();
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
         // Încercăm să logăm utilizatorul dacă contul există deja
@@ -79,9 +79,7 @@ export default function LoginScreen({ onLoginSuccess }) {
         style={styles.container}
       >
         <View style={styles.contentContainer}>
-          
-          {/* HEADER / LOGO */}
-          <View style={styles.header}>
+
             <Image 
               source={{ uri: 'https://img.icons8.com/clouds/200/000000/lock-2.png' }} // O imagine mai clean
               style={styles.headerImg}

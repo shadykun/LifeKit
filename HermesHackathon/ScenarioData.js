@@ -1,92 +1,41 @@
-export const CPR_SCENARIO = [
+export const CPR_COURSE = [
     {
-      id: 'start',
-      text: "Ești în parc. Un bărbat de aproximativ 50 de ani se prăbușește brusc în fața ta. Nu se mai mișcă. Ce faci?",
-      // Folosim o imagine placeholder online
-      image: 'https://img.icons8.com/fluency/240/fallen-person.png', 
-      choices: [
-        { text: "Îl scutur de umeri și strig: 'Domnule, sunteți bine?'", nextNodeId: 'check_response' },
-        { text: "Încep imediat compresiile toracice.", nextNodeId: 'game_over_1' },
-        { text: "Sun la 112 și aștept instrucțiuni.", nextNodeId: 'call_112_passive' }
-      ]
+      id: 'step1',
+      title: '1. Siguranța Salvatorului',
+      text: "Înainte de a te apropia de victimă, asigură-te că zona este sigură pentru tine, pentru victimă și pentru ceilalți. Verifică pericole precum trafic, incendii, cabluri electrice căzute etc. Siguranța ta este prioritară!",
+      image: 'https://img.icons8.com/fluency/240/danger.png', 
     },
     {
-      id: 'check_response',
-      text: "Bărbatul nu reacționează deloc la stimulii tăi. Nu răspunde și nu se mișcă.",
+      id: 'step2',
+      title: '2. Verificarea Stării de Conștiență',
+      text: "Îngenunchează lângă victimă și scutur-o ușor de umeri. Strigă clar și tare: 'Domnule/Doamnă, sunteți bine?'. Verifică dacă victima reacționează în vreun fel (deschide ochii, vorbește, se mișcă).",
       image: 'https://img.icons8.com/fluency/240/unconscious-person.png',
-      choices: [
-        { text: "Verific dacă respiră (Privesc, Ascult, Simt).", nextNodeId: 'check_breathing' },
-        { text: "Îi dau câteva palme peste față.", nextNodeId: 'game_over_slap' }
-      ]
     },
     {
-      id: 'check_breathing',
-      text: "Te apleci deasupra gurii lui. Nu simți aerul pe obraz, toracele nu se mișcă. Victima este în Stop Cardio-Respirator.",
-      image: 'https://img.icons8.com/fluency/240/breathing-exercise.png',
-      choices: [
-        { text: "Sun la 112 și cer un defibrilator, apoi încep RCP.", nextNodeId: 'start_cpr' },
-        { text: "Încep RCP imediat, sun la 112 mai târziu.", nextNodeId: 'game_over_delay' }
-      ]
+      id: 'step3',
+      title: '3. Strigă după Ajutor și Sună la 112',
+      text: "Dacă victima nu răspunde, strigă după ajutor pentru a atrage atenția celor din jur. Apoi, sună imediat la 112. Specifică clar locația, ce s-a întâmplat și că ai o victimă inconștientă. Activează difuzorul telefonului pentru a avea mâinile libere.",
+      image: 'https://img.icons8.com/fluency/240/phone-call.png',
     },
     {
-      id: 'start_cpr',
-      text: "BRAVO! Ai alertat serviciile. Acum trebuie să începi masajul cardiac. Unde plasezi mâinile?",
+        id: 'step4',
+        title: '4. Verificarea Respirației (Maxim 10 secunde)',
+        text: "Deschide căile aeriene ale victimei prin hiperextensia capului (împinge fruntea și ridică bărbia). Apleacă-te cu urechea deasupra gurii victimei și timp de 10 secunde: PRIVEȘTE mișcarea toracelui, ASCULTĂ zgomotele respiratorii și SIMTE aerul expirat pe obraz. Dacă nu respiră sau are o respirație anormală (gasping), victima este în stop cardio-respirator.",
+        image: 'https://img.icons8.com/fluency/240/breathing-exercise.png',
+    },
+    {
+      id: 'step5',
+      title: '5. Începerea Compresiilor Toracice (RCP)',
+      text: "Așează podul palmei în centrul pieptului victimei (pe jumătatea inferioară a sternului). Așează cealaltă mână deasupra și întrepătrunde-ți degetele. Cu coatele drepte, apasă ferm și rapid, la o adâncime de 5-6 cm.",
       image: 'https://img.icons8.com/fluency/240/cpr.png',
-      choices: [
-        { text: "În centrul pieptului, pe stern.", nextNodeId: 'cpr_rhythm' },
-        { text: "În partea stângă, în dreptul inimii.", nextNodeId: 'game_over_position' }
-      ]
     },
     {
-      id: 'cpr_rhythm',
-      text: "Corect! Începi compresiile. Cu ce ritm apeși?",
+      id: 'step6',
+      title: '6. Ritmul și Frecvența Compresiilor',
+      text: "Efectuează compresiile toracice la o frecvență de 100-120 pe minut. Poți folosi ritmul unor piese cunoscute precum 'Stayin\' Alive' de Bee Gees sau 'Another One Bites the Dust' de Queen. Continuă compresiile fără întrerupere până la sosirea ambulanței, până când victima își reia respirația normală sau până când ești epuizat.",
       image: 'https://img.icons8.com/fluency/240/heart-beat.png',
-      choices: [
-        { text: "100-120 compresii pe minut (Ritm rapid).", nextNodeId: 'success' },
-        { text: "60 compresii pe minut (Ritm lent).", nextNodeId: 'game_over_slow' }
-      ]
-    },
-    // --- FINALE (Terminal Nodes) ---
-    {
-      id: 'success',
-      text: "FELICITĂRI! 🏆\nAmbulanța a sosit. Datorită ție, sângele oxigenat a continuat să circule spre creier. Ai salvat o viață!",
-      isTerminal: true,
-      success: true
-    },
-    {
-      id: 'game_over_1',
-      text: "GREȘIT! ❌\nNu începi niciodată RCP fără să verifici conștiența. Poate omul doar a leșinat.",
-      isTerminal: true,
-      success: false
-    },
-    {
-      id: 'call_112_passive',
-      text: "GREȘIT! ❌\nÎn stop cardio-respirator, fiecare secundă contează. Creierul moare în 3-4 minute fără oxigen.",
-      isTerminal: true,
-      success: false
-    },
-    {
-      id: 'game_over_slap',
-      text: "GREȘIT! ❌\nNu agresăm victima. Dacă nu răspunde la scuturat umerii, e inconștientă.",
-      isTerminal: true,
-      success: false
-    },
-    {
-      id: 'game_over_delay',
-      text: "GREȘIT! ❌\nTrebuie să suni la 112 PRIMUL lucru pentru a chema ajutor specializat.",
-      isTerminal: true,
-      success: false
-    },
-    {
-      id: 'game_over_position',
-      text: "GREȘIT! ❌\nCompresiile se fac pe STERN (centrul pieptului), nu pe coaste în stânga.",
-      isTerminal: true,
-      success: false
-    },
-    {
-      id: 'game_over_slow',
-      text: "GREȘIT! ❌\n60 bpm este prea lent. Ritmul corect este 100-120 bpm.",
-      isTerminal: true,
-      success: false
     }
   ];
+  
+  export const CPR_ANIMATED_URL = "https://www.youtube.com/watch?v=DUaxt8OlT3o";
+  
