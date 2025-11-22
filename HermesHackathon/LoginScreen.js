@@ -152,8 +152,8 @@ export default function LoginScreen({ onLoginSuccess }) {
               </TouchableOpacity>
             </View>
 
+
           </View>
-        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

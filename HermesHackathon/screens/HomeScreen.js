@@ -15,13 +15,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 export default function HomeScreen({ navigation }) {
   const [userName, setUserName] = useState('Salvator');
 
-  // Preluăm numele utilizatorului din email-ul salvat la login
   useEffect(() => {
     const getName = async () => {
       try {
         const email = await AsyncStorage.getItem('userEmail');
         if (email) {
-          // Luăm partea dinainte de @ și o capitalizăm (ex: "andrei" -> "Andrei")
           const name = email.split('@')[0];
           setUserName(name.charAt(0).toUpperCase() + name.slice(1));
         }
@@ -38,37 +36,23 @@ export default function HomeScreen({ navigation }) {
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* --- HEADER SECTION --- */}
+        
         <View style={styles.headerSection}>
           <View>
             <Text style={styles.greetingText}>Salut, {userName}!</Text>
             <Text style={styles.subGreeting}>Ești gata să salvezi vieți?</Text>
           </View>
           <Image 
-             // Imagine placeholder pentru avatar
              source={{ uri: 'https://img.icons8.com/color/96/paramedic.png' }} 
              style={styles.avatarSmall} 
           />
         </View>
 
-        {/* --- GAMIFICATION STATS --- */}
-        <View style={styles.statsCard}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>3</Text>
-            <Text style={styles.statLabel}>Zile Streak 🔥</Text>
-          </View>
-          <View style={styles.verticalLine} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>850</Text>
-            <Text style={styles.statLabel}>XP Points ⭐</Text>
-          </View>
-        </View>
 
-        {/* --- CONTINUE LEARNING CARD --- */}
         <Text style={styles.sectionTitle}>Continuă învățarea</Text>
         <TouchableOpacity 
           style={styles.continueCard} 
-          // Navighează către tab-ul de Învățare (asigură-te că numele rutei e 'Invatare' în TabNavigator)
+         
           onPress={() => navigation.navigate('Invatare')} 
         >
           <View style={styles.iconContainer}>
@@ -84,7 +68,6 @@ export default function HomeScreen({ navigation }) {
           <Ionicons name="play-circle" size={36} color="#007AFF" />
         </TouchableOpacity>
 
-        {/* --- DAILY TIP SECTION --- */}
         <Text style={styles.sectionTitle}>Sfatul Zilei</Text>
         <View style={styles.tipContainer}>
           <Ionicons name="bulb" size={28} color="#FFA500" style={{marginTop: 2}} />
@@ -96,7 +79,6 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* --- QUICK ACTIONS --- */}
         <View style={styles.quickActionsRow}>
            <TouchableOpacity style={[styles.actionButton, {backgroundColor: '#E3F2FD'}]}>
               <Ionicons name="book" size={24} color="#1565C0"/>
@@ -117,13 +99,12 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA', // Gri foarte deschis, clean
+    backgroundColor: '#F5F7FA',
   },
   scrollContent: {
     padding: 24,
     paddingBottom: 40,
   },
-  // Header Styles
   headerSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -133,7 +114,7 @@ const styles = StyleSheet.create({
   },
   greetingText: {
     fontSize: 26,
-    fontWeight: '800', // Extra Bold
+    fontWeight: '800', 
     color: '#333',
   },
   subGreeting: {
@@ -153,7 +134,6 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
-  // Stats Card Styles
   statsCard: {
     flexDirection: 'row',
     backgroundColor: '#fff',
@@ -189,14 +169,12 @@ const styles = StyleSheet.create({
     height: '80%',
     alignSelf: 'center',
   },
-  // Titles
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 15,
   },
-  // Continue Learning Card
   continueCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -240,11 +218,10 @@ const styles = StyleSheet.create({
     height: 6,
     backgroundColor: '#007AFF',
     borderRadius: 3,
-    width: '60%', // Aici poți controla dinamic lățimea
+    width: '60%', 
   },
-  // Daily Tip
   tipContainer: {
-    backgroundColor: '#FFF8E1', // Galben pal
+    backgroundColor: '#FFF8E1', 
     padding: 20,
     borderRadius: 16,
     flexDirection: 'row',
@@ -264,7 +241,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
   },
-  // Quick Actions
   quickActionsRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
