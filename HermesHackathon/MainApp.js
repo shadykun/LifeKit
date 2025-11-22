@@ -1,64 +1,58 @@
+import React from 'react';
+import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ActivityIndicator, Button, Text, View, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {auth} from './firebaseInit';
-import react, { useEffect } from 'react';
-import { set } from 'firebase/database';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+// Importăm ecranele separate
+import HomeScreen from './screens/HomeScreen';
+import ModulesScreen from './screens/ModulesScreen';
+import ProfileScreen from './screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
-function HomeScreen() {
-  return (
-    <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
-      <Text>Loading Home Screen {'\n'}</Text>
-      <ActivityIndicator size = "large" color = "lightblue"/>
-    </View>
-  );
-}
+export default function MainApp({ onLogout }) {
+  
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('userToken');
+    onLogout();
+  };
 
-function ProfileScreen({ onLogout }) {
-
-  const [user,setUser] = react.useState(null);
-
-  useEffect(() =>{
-    const getEmail = async () => {
-    const email = await AsyncStorage.getItem('userEmail');
-    setUser(email);
-  }
-    getEmail();
-  }, []);
-
-  return (
-  <View style={{ flex: 1, paddingTop: 50, alignItems: 'center' }}>
-    <Image
-      source={require('./assets/Images/user.png')}
-      style={{ width: 40, height: 40 }}
-    />
-  <View style = {{marginRight: 'auto', paddingHorizontal: 15, marginTop:30}}>
-    <Text style= {{fontSize:18}} >
-    Email: {user ? user : 'No user logged in'}
-    </Text>
-  </View>
-    <View style={{ flex: 1, justifyContent: 'flex-end', marginBottom: 20, width: '100%' }}>
-      <Button title="Log Out" color="red" onPress={onLogout} />
-    </View>
-  </View>
-  );
-}
-
-
-export default function MainApp({onLogout}) {
-  const handleLogout = async () =>{
-      await AsyncStorage.removeItem('userToken');
-      onLogout();
-  }
   return (
     <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen name="Home" component={HomeScreen} options={{headerShown: false}} />
-        <Tab.Screen name="Profile" options={{headerShown:false}}>
-         {() => <ProfileScreen onLogout={handleLogout} />}
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F7FA" />
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarActiveTintColor: '#007AFF',
+          tabBarInactiveTintColor: 'gray',
+          tabBarStyle: {
+            paddingBottom: 5,
+            height: 60,
+            borderTopWidth: 0,
+            elevation: 5,
+            shadowOpacity: 0.1,
+          },
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+
+            if (route.name === 'Home') {
+              iconName = focused ? 'home' : 'home-outline';
+            } else if (route.name === 'Modules') {
+              iconName = focused ? 'book' : 'book-outline';
+            } else if (route.name === 'Profile') {
+              iconName = focused ? 'person' : 'person-outline';
+            }
+
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+        })}
+      >
+        <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Acasă' }}/>
+        <Tab.Screen name="Modules" component={ModulesScreen} options={{ tabBarLabel: 'Învățare' }}/>
+        <Tab.Screen name="Profile" options={{ tabBarLabel: 'Profil' }}>
+          {() => <ProfileScreen onLogout={handleLogout} />}
         </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>
