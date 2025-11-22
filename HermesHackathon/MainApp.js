@@ -15,6 +15,7 @@ import QuizScreen from './screens/QuizScreen';
 import FlashcardsScreen from './screens/FlashcardsScreen';
 import LearningHubScreen from './screens/LearningHubScreen';
 import MapScreen from './screens/MapScreen';
+import AdminDemoScreen from './screens/AdminDemoScreen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform } from 'react-native';
 

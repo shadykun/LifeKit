@@ -29,12 +29,18 @@ export default function ScenarioScreen({ navigation, route }) {
           ApiService.getVideos()
         ]);
 
-        // A. FILTRARE STRICTĂ DUPĂ ID
-        const relevantTexts = allTexts.filter(t => String(t.id) === String(moduleId));
-        const relevantImages = allImages.filter(i => String(i.id) === String(moduleId));
-        const relevantVideos = allVideos.filter(v => String(v.id) === String(moduleId));
-
-        // B. COMBINARE (Mapping)
+        const targetId = String(moduleId);
+        
+        const relevantTexts = allTexts.filter(t => 
+             String(t.course_id || t.chapter_id || t.moduleId || t.id) === targetId
+        );
+        const relevantImages = allImages.filter(i => 
+             String(i.course_id || i.chapter_id || i.moduleId || i.id) === targetId
+        );
+        const relevantVideos = allVideos.filter(v => 
+             String(v.course_id || v.chapter_id || v.moduleId || v.id) === targetId
+        );
+        
         const steps = relevantTexts.map((textItem, index) => {
           const imageItem = relevantImages[index] || relevantImages[0] || null;
           
@@ -44,10 +50,10 @@ export default function ScenarioScreen({ navigation, route }) {
             imageUrl: imageItem ? (imageItem.url || imageItem.path || imageItem.link) : null
           };
         });
-
+        
         setScenarioSteps(steps);
         setVideos(relevantVideos);
-
+        
       } catch (error) {
         console.error("[Scenario Error]", error);
         Alert.alert("Eroare", "Nu am putut descărca datele.");
@@ -101,9 +107,7 @@ export default function ScenarioScreen({ navigation, route }) {
     }
   };
 
-  // =================================================
-  // RENDER: 1. MENIU SELECȚIE
-  // =================================================
+  // SELECȚIE
   const renderSelectionScreen = () => (
     <View style={styles.menuContainer}>
       <View style={styles.headerContainer}>
@@ -136,18 +140,16 @@ export default function ScenarioScreen({ navigation, route }) {
     </View>
   );
 
-  // =================================================
-  // RENDER: 2. MOD LECTIE (INTERACTIV)
-  // =================================================
+  // MOD INTERACTIV
   const renderInteractiveMode = () => {
     if (scenarioSteps.length === 0) {
       return (
         <View style={styles.centerContent}>
-           <Ionicons name="library-outline" size={60} color="#ccc" />
-           <Text style={styles.emptyText}>Nu am găsit text pentru acest ID ({moduleId}).</Text>
-           <TouchableOpacity style={styles.backTextBtn} onPress={goBackToMenu}>
-             <Text style={{color: '#007AFF', fontWeight: 'bold'}}>Înapoi la Meniu</Text>
-           </TouchableOpacity>
+          <Ionicons name="library-outline" size={60} color="#ccc" />
+          <Text style={styles.emptyText}>Nu am găsit text pentru acest ID ({moduleId}).</Text>
+          <TouchableOpacity style={styles.backTextBtn} onPress={goBackToMenu}>
+            <Text style={{color: '#007AFF', fontWeight: 'bold'}}>Înapoi la Meniu</Text>
+          </TouchableOpacity>
         </View>
       );
     }
@@ -156,31 +158,30 @@ export default function ScenarioScreen({ navigation, route }) {
 
     return (
       <View style={{flex: 1}}> 
-        {/* Header Fix sus */}
         <View style={styles.lessonHeaderBar}>
-           <TouchableOpacity onPress={goBackToMenu} style={{padding: 5}}>
-             <Ionicons name="close" size={24} color="#333"/>
-           </TouchableOpacity>
-           <Text style={styles.lessonProgressText}>
-             Pagina {currentStepIndex + 1} din {scenarioSteps.length}
-           </Text>
-           <View style={{width: 24}} />
+          <TouchableOpacity onPress={goBackToMenu} style={{padding: 5}}>
+            <Ionicons name="close" size={24} color="#333"/>
+          </TouchableOpacity>
+          <Text style={styles.lessonProgressText}>
+            Pagina {currentStepIndex + 1} din {scenarioSteps.length}
+          </Text>
+          <View style={{width: 24}} />
         </View>
 
         <View style={styles.progressBarContainer}>
-            <View style={[styles.progressBarFill, { width: `${((currentStepIndex + 1) / scenarioSteps.length) * 100}%` }]} />
+          <View style={[styles.progressBarFill, { width: `${((currentStepIndex + 1) / scenarioSteps.length) * 100}%` }]} />
         </View>
 
         <ScrollView contentContainerStyle={styles.lessonScrollContent}>
           <Text style={styles.stepTitle}>Pasul {currentStepIndex + 1}</Text>
 
           {currentStep.imageUrl ? (
-             <Image 
-               source={{ uri: currentStep.imageUrl }} 
-               style={styles.lessonImage}
-               resizeMode="cover"
-             />
-           ) : null}
+            <Image 
+              source={{ uri: currentStep.imageUrl }} 
+              style={styles.lessonImage}
+              resizeMode="cover"
+            />
+          ) : null}
 
           <View style={styles.lessonBody}>
             <Text style={styles.lessonText}>
@@ -213,49 +214,41 @@ export default function ScenarioScreen({ navigation, route }) {
     );
   };
 
-  // =================================================
-  // RENDER: 3. MOD VIDEO (KIDS) - ACUM CU YOUTUBE
-  // =================================================
+  // MOD VIDEO (KIDS)
   const renderKidsMode = () => {
     const currentVideo = videos.length > 0 ? videos[0] : null;
-    
-    // Extragem link-ul video (suportă diverse denumiri de câmpuri)
     const videoUrl = currentVideo ? (currentVideo.url || currentVideo.link || currentVideo.path) : null;
 
     return (
       <View style={styles.contentContainer}>
         <TouchableOpacity onPress={goBackToMenu} style={styles.backRow}>
-           <Ionicons name="arrow-back" size={24} color="#333" />
-           <Text style={styles.backLabel}>Înapoi</Text>
+          <Ionicons name="arrow-back" size={24} color="#333" />
+          <Text style={styles.backLabel}>Înapoi</Text>
         </TouchableOpacity>
         
-        {currentVideo ? (
+        {currentVideo && videoUrl ? (
           <View style={styles.kidsContainer}>
-            {/* Titlu Prietenos */}
             <Text style={styles.kidsTitle}>Salut, micule salvator! 👋</Text>
             <Text style={styles.kidsSubtitle}>Urmărește acest video ca să înveți cum să ajuți.</Text>
             
-            {/* Card Video Youtube */}
             <TouchableOpacity 
               style={styles.youtubeCard} 
               activeOpacity={0.9} 
               onPress={() => openVideoLink(videoUrl)}
             >
-                {/* Thumbnail Placeholder (Sau imagine reală dacă ai) */}
-                <View style={styles.thumbnailContainer}>
-                   <View style={styles.playButtonCircle}>
-                      <Ionicons name="play" size={40} color="#FF0000" style={{marginLeft: 5}} />
-                   </View>
-                   <Text style={styles.watchText}>Vizionează pe YouTube</Text>
+              <View style={styles.thumbnailContainer}>
+                <View style={styles.playButtonCircle}>
+                  <Ionicons name="play" size={40} color="#FF0000" style={{marginLeft: 5}} />
                 </View>
-                
-                <View style={styles.videoInfo}>
-                   <Text style={styles.videoCardTitle}>{currentVideo.title || "Lecție Video"}</Text>
-                   <Text style={styles.videoCardDesc}>{currentVideo.description || "Învață primii pași în siguranță."}</Text>
-                </View>
+                <Text style={styles.watchText}>Vizionează pe YouTube</Text>
+              </View>
+              
+              <View style={styles.videoInfo}>
+                <Text style={styles.videoCardTitle}>{currentVideo.title || "Lecție Video"}</Text>
+                <Text style={styles.videoCardDesc}>{currentVideo.description || "Învață primii pași în siguranță."}</Text>
+              </View>
             </TouchableOpacity>
 
-            {/* Notă informativă */}
             <View style={styles.noteBox}>
               <Ionicons name="information-circle-outline" size={24} color="#555" />
               <Text style={styles.noteText}>
@@ -265,19 +258,19 @@ export default function ScenarioScreen({ navigation, route }) {
 
           </View>
         ) : (
-            <View style={styles.centerContent}>
-               <Ionicons name="videocam-off-outline" size={60} color="#ccc" />
-               <Text style={styles.emptyText}>Nu am găsit niciun video distractiv pentru acest modul.</Text>
-               <TouchableOpacity style={styles.backTextBtn} onPress={goBackToMenu}>
-                 <Text style={{color: '#007AFF', fontWeight: 'bold'}}>Încearcă alt mod</Text>
-               </TouchableOpacity>
-            </View>
+          <View style={styles.centerContent}>
+            <Ionicons name="videocam-off-outline" size={60} color="#ccc" />
+            <Text style={styles.emptyText}>Nu am găsit niciun video distractiv pentru acest modul.</Text>
+            <TouchableOpacity style={styles.backTextBtn} onPress={goBackToMenu}>
+              <Text style={{color: '#007AFF', fontWeight: 'bold'}}>Încearcă alt mod</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     );
   };
 
-  // --- LOADING ---
+  // LOADING
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -300,7 +293,6 @@ const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: '#F5F7FA' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
-  // Meniu Principal
   menuContainer: { flex: 1, padding: 20, justifyContent: 'center' },
   headerContainer: { alignItems: 'center', marginBottom: 40 },
   menuTitle: { fontSize: 24, fontWeight: 'bold', color: '#333', marginTop: 15 },
@@ -311,7 +303,6 @@ const styles = StyleSheet.create({
   modeTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   modeDesc: { fontSize: 13, color: '#666' },
 
-  // --- STILURI KIDS MODE (NOU) ---
   kidsContainer: { flex: 1, alignItems: 'center', paddingHorizontal: 10 },
   kidsTitle: { fontSize: 26, fontWeight: 'bold', color: '#FF9800', marginBottom: 8, textAlign: 'center' },
   kidsSubtitle: { fontSize: 16, color: '#666', marginBottom: 30, textAlign: 'center' },
@@ -347,7 +338,6 @@ const styles = StyleSheet.create({
   },
   noteText: { flex: 1, marginLeft: 10, color: '#1565C0', fontSize: 14 },
 
-  // --- STILURI LECȚIE INTERACTIVĂ ---
   lessonHeaderBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
   lessonProgressText: { fontSize: 14, fontWeight: '600', color: '#666' },
   progressBarContainer: { height: 3, backgroundColor: '#E0E0E0', width: '100%' },
@@ -363,7 +353,6 @@ const styles = StyleSheet.create({
   disabledNavBtn: { opacity: 0.5 },
   navBtnText: { fontSize: 16, fontWeight: '600', color: '#333', marginHorizontal: 5 },
 
-  // Common
   contentContainer: { padding: 20, flex: 1 },
   backRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, alignSelf: 'flex-start' },
   backLabel: { fontSize: 16, fontWeight: 'bold', color: '#333', marginLeft: 5 },
