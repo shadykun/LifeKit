@@ -1,11 +1,12 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
+// 1. SCOATEM NavigationContainer DE AICI. (E deja în App.js)
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
-// 2. IMPORTĂM TOATE ECRANELE
+// 2. IMPORTĂM ECRANELE
 import HomeScreen from './screens/HomeScreen';
 import ModulesScreen from './screens/ModulesScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -15,18 +16,15 @@ import QuizScreen from './screens/QuizScreen';
 import FlashcardsScreen from './screens/FlashcardsScreen';
 import LearningHubScreen from './screens/LearningHubScreen';
 import MapScreen from './screens/MapScreen';
+
+// IMPORT NOU: Admin Screen
 import AdminDemoScreen from './screens/AdminDemoScreen';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Platform } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 // --- MENIUL DE JOS (TABS) ---
 function HomeTabs({ onLogout }) {
-  // 2. CALCULĂM INSETS (Spațiul ocupat de sistem)
-  const insets = useSafeAreaInsets();
-
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -34,11 +32,8 @@ function HomeTabs({ onLogout }) {
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: 'gray',
         tabBarStyle: {
-          // 3. APLICĂM CORECȚIA PENTRU BUTOANELE TOUCH
-          // Adăugăm înălțimea butoanelor sistemului la înălțimea meniului nostru
-          height: 60 + (Platform.OS === 'android' ? insets.bottom : 0), 
-          paddingBottom: 5 + (Platform.OS === 'android' ? insets.bottom : 0),
-          
+          paddingBottom: 5,
+          height: 60,
           borderTopWidth: 0,
           elevation: 5,
           shadowOpacity: 0.1,
@@ -74,8 +69,6 @@ export default function MainApp({ onLogout }) {
     }
   };
 
-  // 3. AICI E SCHIMBAREA: Returnăm <> ... </> (Fragment)
-  // FĂRĂ NavigationContainer, pentru că App.js îl are deja.
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F7FA" />
@@ -88,12 +81,12 @@ export default function MainApp({ onLogout }) {
           headerBackTitleVisible: false,
         }}
       >
-        {/* Ecranele Principale (Tabs) */}
+        {/* 1. Ecranele Principale (Tabs) */}
         <Stack.Screen name="MainTabs" options={{ headerShown: false }}>
            {() => <HomeTabs onLogout={handleLogout} />}
         </Stack.Screen>
 
-        {/* Ecranele din Hub */}
+        {/* 2. Ecranele din Hub */}
         <Stack.Screen 
           name="Modules" 
           component={ModulesScreen} 
@@ -106,7 +99,7 @@ export default function MainApp({ onLogout }) {
           options={{ title: 'Harta Locații' }} 
         />
 
-        {/* Restul Ecranelor */}
+        {/* 3. Restul Ecranelor */}
         <Stack.Screen 
           name="ModuleDetail" 
           component={ModuleDetailScreen} 
@@ -115,6 +108,13 @@ export default function MainApp({ onLogout }) {
         <Stack.Screen name="Scenario" component={ScenarioScreen} options={{ title: 'Simulare Caz' }} />
         <Stack.Screen name="Quiz" component={QuizScreen} options={{ title: 'Testare' }} />
         <Stack.Screen name="Flashcards" component={FlashcardsScreen} options={{ title: 'Flashcards' }} />
+
+        {/* 4. ECRANUL ADMIN (NOU) */}
+        <Stack.Screen 
+          name="AdminDemo" 
+          component={AdminDemoScreen} 
+          options={{ title: 'Panou Admin (Demo)' }} 
+        />
 
       </Stack.Navigator>
     </>
