@@ -7,7 +7,6 @@ from sqlalchemy.orm import sessionmaker
 # Presupunem că importurile modelelor sunt corecte în proiectul tău.
 # Dacă rulezi asta într-un singur fișier, asigură-te că modelele sunt definite mai sus.
 from database import Base, SessionLocal, engine
-from models.user import Account
 from models.course import Chapter, Course
 from models.media import Image, Text as TextBlock, Video
 from models.assessment import Flashcard, Question, Quiz
@@ -30,35 +29,9 @@ def get_session():
 def clear_tables(session):
     """Remove existing rows to avoid duplicates when reseeding."""
     # Ordinea este importantă din cauza cheilor străine (Foreign Keys)
-    for model in (Question, Quiz, Flashcard, Image, Video, TextBlock, Chapter, Course, Account):
+    for model in (Question, Quiz, Flashcard, Image, Video, TextBlock, Chapter, Course):
         session.query(model).delete(synchronize_session=False)
     session.commit()
-
-
-def seed_accounts(session):
-    accounts = [
-        Account(
-            email="dr.emma.taylor@safeaid.org",
-            hashed_password="pbkdf2:sha256:260000$firstaid1",
-            age=34,
-            username="trauma_doc",
-        ),
-        Account(
-            email="coach.luis.ramirez@safeaid.org",
-            hashed_password="pbkdf2:sha256:260000$firstaid2",
-            age=41,
-            username="coach_luis",
-        ),
-        Account(
-            email="nurse.sofia.popescu@safeaid.org",
-            hashed_password="pbkdf2:sha256:260000$firstaid3",
-            age=29,
-            username="sofia_rn",
-        ),
-    ]
-    session.add_all(accounts)
-    session.flush()
-    return accounts
 
 
 def seed_courses(session):
@@ -416,9 +389,6 @@ def main():
     with get_session() as session:
         clear_tables(session)
         print("🧹 Tabele curățate.")
-        
-        seed_accounts(session)
-        print("👤 Conturi create.")
         
         courses = seed_courses(session)
         print("📚 Cursuri create.")
