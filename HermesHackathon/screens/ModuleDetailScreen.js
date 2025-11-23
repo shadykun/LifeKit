@@ -9,12 +9,17 @@ export default function ModuleDetailScreen({ navigation, route }) {
     moduleData: { id: 'test', title: 'Curs Test', color: '#666', icon: 'book' } 
   };
 
-  // Pasează ID-ul cursului către activități
   const navigateToActivity = (screenName) => {
     navigation.navigate(screenName, { 
       moduleId: moduleData.id, 
       moduleTitle: moduleData.title 
     });
+  };
+
+  // NOU: Funcție pentru butonul fix (de exemplu, Start Scenariu)
+  const handleFloatingAction = () => {
+      // Navigăm direct la secțiunea cea mai importantă
+      navigateToActivity('Scenario');
   };
 
   return (
@@ -32,7 +37,12 @@ export default function ModuleDetailScreen({ navigation, route }) {
 
           <Text style={styles.sectionTitle}>Începe Cursul</Text>
           
-          <TouchableOpacity style={styles.simulationCard} onPress={() => navigateToActivity('Scenario')}>
+          {/* Cursul principal poate fi eliminat sau simplificat, 
+             deoarece butonul plutitor preia acțiunea principală */}
+          <TouchableOpacity 
+            style={styles.simulationCard} 
+            onPress={() => navigateToActivity('Scenario')}
+          >
              <View style={styles.simBadge}><Text style={styles.simBadgeText}>RECOMANDAT</Text></View>
              <Ionicons name="school" size={40} color="#fff" style={{marginBottom: 10}}/>
              <Text style={styles.simTitle}>Alege Modul de Învățare</Text>
@@ -61,6 +71,19 @@ export default function ModuleDetailScreen({ navigation, route }) {
           </TouchableOpacity>
 
         </ScrollView>
+
+        {/* ======================================= */}
+        {/* NOU: Butonul Overlap (Floating Action Button) */}
+        {/* ======================================= */}
+        <TouchableOpacity 
+          style={styles.floatingButton} 
+          onPress={handleFloatingAction}
+          activeOpacity={0.8}
+        >
+            <Ionicons name="play" size={28} color="#fff" style={{marginRight: 5}}/>
+            <Text style={styles.floatingButtonText}>Start Lecție Principală</Text>
+        </TouchableOpacity>
+        
       </View>
     </SafeAreaView>
   );
@@ -68,7 +91,7 @@ export default function ModuleDetailScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA' },
-  webWrapper: { flex: 1, alignSelf: 'center', width: '100%', maxWidth: 600, backgroundColor: Platform.OS === 'web' ? '#fff' : 'transparent' },
+  webWrapper: { flex: 1, alignSelf: 'center', width: '100%', maxWidth: 600, backgroundColor: Platform.OS === 'web' ? '#fff' : 'transparent', position: 'relative' },
   headerBanner: { padding: 30, borderRadius: 20, alignItems: 'center', marginBottom: 25, elevation: 4, shadowOpacity: 0.2, shadowOffset: {width:0,height:2} },
   headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff', marginTop: 10, textAlign: 'center' },
   headerDesc: { fontSize: 14, color: 'rgba(255,255,255,0.9)', marginTop: 5, textAlign: 'center' },
@@ -83,4 +106,30 @@ const styles = StyleSheet.create({
   iconBox: { width: 45, height: 45, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   btnTitle: { fontSize: 16, fontWeight: '600', color: '#333' },
   btnSub: { fontSize: 12, color: '#888', marginTop: 2 },
+  
+  // =======================================
+  // NOU: Stil pentru butonul plutitor (Overlap)
+  // =======================================
+  floatingButton: {
+    position: 'absolute', 
+    bottom: 20, // Mutăm puțin mai jos
+    right: 15,  // Mutăm puțin mai la dreapta
+    backgroundColor: '#007AFF', 
+    paddingVertical: 8, // REDUS
+    paddingHorizontal: 15, // REDUS
+    borderRadius: 25, // Rotunjit (poate fi redus la 20 dacă doriți un cerc)
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 8, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  },
+  floatingButtonText: {
+    color: '#fff',
+    fontSize: 12, // REDUS
+    fontWeight: 'bold',
+  },
 });
