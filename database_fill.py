@@ -4,8 +4,6 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Presupunem că importurile modelelor sunt corecte în proiectul tău.
-# Dacă rulezi asta într-un singur fișier, asigură-te că modelele sunt definite mai sus.
 from database import Base, SessionLocal, engine
 from models.course import Chapter, Course
 from models.media import Image, Text as TextBlock, Video
@@ -28,7 +26,6 @@ def get_session():
 
 def clear_tables(session):
     """Remove existing rows to avoid duplicates when reseeding."""
-    # Ordinea este importantă din cauza cheilor străine (Foreign Keys)
     for model in (Question, Quiz, Flashcard, Image, Video, TextBlock, Chapter, Course):
         session.query(model).delete(synchronize_session=False)
     session.commit()
@@ -71,9 +68,7 @@ def seed_chapters(session, courses):
         "Intervenții prioritare și monitorizare",
     ]
     chapters = []
-    # Generăm capitole pentru fiecare curs (simplificat pentru exemplu)
-    # Aici presupunem o structură liniară: primele 3 cap la cursul 1, următoarele 3 la cursul 2 etc.
-    # Logică ajustată pentru a potrivi indexarea din seed_quizzes
+
     
     for course in courses:
         for title in chapter_templates:
@@ -88,20 +83,30 @@ def seed_chapters(session, courses):
 def seed_videos(session, courses):
     videos = [
         Video(
-            url="https://cdn.safeaid.org/videos/control-bleeding-tourniquet.mp4",
-            duration=480,
+            url="https://www.youtube.com/watch?v=jYtJS1PtNq0",
+            duration=85,
             course=courses[0],
         ),
         Video(
-            url="https://cdn.safeaid.org/videos/adult-cpr-aed.mp4",
+            url="https://www.youtube.com/shorts/tRwwo5n4uU0",
             duration=540,
             course=courses[1],
         ),
         Video(
-            url="https://cdn.safeaid.org/videos/spinal-motion-restriction.mp4",
+            url="https://www.youtube.com/watch?v=xYBUY1kZpf8",
             duration=420,
             course=courses[2],
         ),
+        Video(
+            url="https://www.youtube.com/shorts/mP9ZNuxqmLM",
+            duration=100,
+            course=courses[3],  
+),
+        Video(
+            url="https://www.youtube.com/watch?v=Moq94c9DtGE",
+            duration=50,
+            course=courses[4],  
+),
     ]
     session.add_all(videos)
     session.flush()
@@ -219,8 +224,6 @@ def seed_flashcards(session, courses):
 
 
 def seed_quizzes(session, chapters):
-    # Asignăm quiz-urile unor capitole specifice (index 0, 3, 6 corespund capitolelor diferite din cursuri diferite)
-    # Lista chapters are 9 elemente (3 cursuri * 3 capitole)
     quizzes = [
         Quiz(title="Controlul hemoragiei - verificare rapidă", chapter=chapters[0]),
         Quiz(title="CPR avansat - recapitulare", chapter=chapters[3]), 
@@ -245,7 +248,6 @@ def seed_questions(session, quizzes):
     - correct_answer (int: 1, 2, sau 3)
     """
 
-    # Structura datelor: Listă de liste, unde fiecare sub-listă corespunde unui Quiz
     all_questions_data = [
    
         [
