@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform, Modal, Switch, FlatList, SafeAreaView
+  ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform, Modal, Switch, FlatList
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ADMIN_SCHEMAS } from '../constants/adminSchemas';
 import { ApiService } from '../services/api';

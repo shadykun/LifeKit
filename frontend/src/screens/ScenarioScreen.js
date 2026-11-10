@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image, Alert, Linking
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, Linking
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import LoadingView from '../components/LoadingView';
 import { ApiService } from '../services/api';

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import LoadingView from './src/components/LoadingView';
 import { STORAGE_KEYS } from './src/constants/storageKeys';
@@ -33,12 +34,14 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      {isLoggedIn ? (
-        <AppNavigator onLogout={handleLogout} />
-      ) : (
-        <LoginScreen onLoginSuccess={() => setIsLoggedIn(true)} />
-      )}
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        {isLoggedIn ? (
+          <AppNavigator onLogout={handleLogout} />
+        ) : (
+          <LoginScreen onLoginSuccess={() => setIsLoggedIn(true)} />
+        )}
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

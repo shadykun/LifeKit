@@ -43,7 +43,7 @@ The app's interface is in Romanian.
    Firebase Authentication                          Google Places API
 ```
 
-- **Frontend:** Expo SDK 54, React Native 0.81, React Navigation 7 (Android, iOS and web).
+- **Frontend:** Expo SDK 58, React Native 0.88, React Navigation 7 (Android, iOS and web).
 - **Backend:** FastAPI, SQLAlchemy, PostgreSQL 15, run with Docker Compose.
 - The app authenticates directly against Firebase; the backend has no accounts and does not verify the user.
 
@@ -80,7 +80,7 @@ LifeKit/
 
 ## Quick start
 
-You need Docker (for the backend) and Node.js 20+ (for the frontend).
+You need Docker (for the backend) and Node.js 22.13+ (for the frontend).
 
 ### 1. Backend
 
@@ -103,7 +103,7 @@ npm install
 npx expo start
 ```
 
-Then scan the QR code with Expo Go, or press `a` (Android), `i` (iOS) or `w` (web).
+Then scan the QR code with Expo Go, or press `a` (Android), `i` (iOS) or `w` (web). Expo Go must support SDK 58, so update it if it says the project is incompatible.
 
 By default the app talks to the API hosted by the team. To point it at your local backend, see [Configuration](#configuration).
 

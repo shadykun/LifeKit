@@ -1,8 +1,9 @@
 import React from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Platform
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Platform
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { webPointer } from '../utils/styles';
 

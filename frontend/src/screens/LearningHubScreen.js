@@ -1,8 +1,9 @@
 import React from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, TouchableOpacity, StatusBar
+  View, Text, StyleSheet, TouchableOpacity, StatusBar
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LearningHubScreen({ navigation }) {
   return (
