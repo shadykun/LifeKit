@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=learning_platform
+    networks:
+      - internal_net
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=learning_platform
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+    volumes:
+      # The source is mounted so that .env (GOOGLE_API_KEY) and code changes are picked up.
+      - .:/app
+    networks:
+      - internal_net
+
+volumes:
+  postgres_data:
+
+networks:
+  internal_net:
+    driver: bridge
